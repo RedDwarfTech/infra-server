@@ -4,6 +4,7 @@ use actix_web::HttpServer;
 use rust_wheel::config::app::app_conf_reader::get_app_config;
 
 pub mod controller;
+pub mod model;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
