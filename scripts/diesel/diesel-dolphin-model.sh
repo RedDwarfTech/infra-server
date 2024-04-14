@@ -11,6 +11,6 @@ diesel_ext --derive Insertable,Queryable,QueryableByName,Debug,Serialize,Deseria
 --add-table-name \
 --import-types "serde::Serialize" \
 --import-types "serde::Deserialize" \
---import-types "crate::model::diesel::tex::tex_schema::*" \
---schema-file "${PROJECT_DIR}"/src/model/diesel/tex/tex_schema.rs --model > "${PROJECT_DIR}"/src/model/diesel/tex/tex_models.rs
+--import-types "crate::model::diesel::dolphin::dolphin_schema::*" \
+--schema-file "${PROJECT_DIR}"/src/model/diesel/dolphin/dolphin_schema.rs --model > "${PROJECT_DIR}"/src/model/diesel/dolphin/dolphin_models.rs
 

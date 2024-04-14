@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate diesel;
+
 use crate::controller::user::user_controller;
 use actix_web::App;
 use actix_web::HttpServer;
