@@ -8,7 +8,25 @@ use serde::Deserialize;
 use crate::model::diesel::dolphin::dolphin_schema::*;
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
-#[diesel(table_name = users)]
+#[diesel(table_name = apps)]
+pub struct App {
+    pub id: i32,
+    pub app_name: String,
+    pub remark: String,
+    pub created_time: i64,
+    pub updated_time: i64,
+    pub user_count: i32,
+    pub online_status: i32,
+    pub online_time: Option<i64>,
+    pub app_abbr: String,
+    pub app_id: String,
+    pub app_tag: Option<String>,
+    pub auth_mode: i16,
+    pub product_id: i32,
+}
+
+#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[diesel(table_name = "users")]
 pub struct User {
     pub id: i64,
     pub nickname: String,

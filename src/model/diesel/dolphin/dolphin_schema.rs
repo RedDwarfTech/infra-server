@@ -1,4 +1,22 @@
 table! {
+    apps (id) {
+        id -> Int4,
+        app_name -> Varchar,
+        remark -> Varchar,
+        created_time -> Int8,
+        updated_time -> Int8,
+        user_count -> Int4,
+        online_status -> Int4,
+        online_time -> Nullable<Int8>,
+        app_abbr -> Varchar,
+        app_id -> Varchar,
+        app_tag -> Nullable<Varchar>,
+        auth_mode -> Int2,
+        product_id -> Int4,
+    }
+}
+
+table! {
     users (id) {
         id -> Int8,
         nickname -> Varchar,
@@ -23,3 +41,8 @@ table! {
         product_id -> Int4,
     }
 }
+
+allow_tables_to_appear_in_same_query!(
+    apps,
+    users,
+);

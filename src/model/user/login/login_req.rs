@@ -7,4 +7,8 @@ pub struct LoginReq {
     pub phone: String,
     #[validate(length(min = 1))]
     pub password: String,
+    #[validate(length(min = 1))]
+    pub app_id: String,
+    #[validate(length(min = 1))]
+    pub device_id: String,
 }

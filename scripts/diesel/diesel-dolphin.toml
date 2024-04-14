@@ -5,6 +5,7 @@ file = "../../src/model/diesel/dolphin/dolphin_schema.rs"
 with_docs = false
 
 filter = { only_tables = [
-    "users"
+    "users",
+    "apps"
 ] }
 
