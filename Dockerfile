@@ -1,4 +1,4 @@
-FROM rust:1.54-alpine as builder
+FROM rust:1.77-alpine3.18 as builder
 WORKDIR /app
 COPY . /app
 RUN rustup default stable
