@@ -1,0 +1,16 @@
+[package]
+name = "infra-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1.0.64", features = ["derive"] }
+serde_json = "1.0.64"
+actix-web = "4"
+actix-web-validator = "5.0.1"
+rust_wheel = { git = "https://github.com/jiangxiaoqiang/rust_wheel.git", branch = "diesel2.0", features = [
+    "model",
+    "common",
+    "rwconfig",
+    "texhub"
+] }
