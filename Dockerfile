@@ -1,8 +1,6 @@
-FROM rust:1.77-alpine3.18 as builder
-WORKDIR /app
-COPY . /app
-RUN rustup default stable
-RUN apk update && apk add --no-cache libpq musl-dev pkgconfig openssl-dev postgresql-dev
+ARG BASE_IMAGE=dolphinjiang/rust-musl-builder:latest
+FROM ${BASE_IMAGE} AS builder
+ADD --chown=rust:rust . ./
 RUN cargo build --release
 
 FROM alpine:3.18.2
