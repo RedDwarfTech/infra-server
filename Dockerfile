@@ -1,6 +1,9 @@
-ARG BASE_IMAGE=dolphinjiang/rust-musl-builder:latest
-FROM ${BASE_IMAGE} AS builder
-ADD --chown=rust:rust . ./
+FROM rust:1.54-alpine as builder
+WORKDIR /app
+COPY . /app
+RUN rustup default stable
+RUN apk update && apk add --no-cache libpq musl-dev pkgconfig openssl-dev postgresql-dev
+RUN cargo build --release
 
 FROM alpine:3.18.2
 LABEL maintainer="jiangtingqiang@gmail.com"
