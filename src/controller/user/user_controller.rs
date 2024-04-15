@@ -1,5 +1,6 @@
 use crate::model::diesel::dolphin::custom_dolphin_models::User;
 use crate::service::app::app_service::query_app_by_app_id;
+use crate::service::user::user_service::query_user_by_id;
 use crate::{
     model::user::login::login_req::LoginReq, service::user::user_service::query_user_by_product_id,
 };
@@ -9,6 +10,8 @@ use rust_wheel::common::wrapper::actix_http_resp::box_actix_rest_response;
 use rust_wheel::common::wrapper::actix_http_resp::box_error_actix_rest_response;
 use rust_wheel::model::response::user::login_response::LoginResponse;
 use rust_wheel::model::user::jwt_auth::create_access_token;
+use rust_wheel::model::user::login_user_info::LoginUserInfo;
+use rust_wheel::model::user::login_user_response::LoginUserResponse;
 use rust_wheel::model::user::rd_user_info::RdUserInfo;
 use uuid::Uuid;
 
@@ -50,6 +53,23 @@ pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder 
             "登录信息不匹配".to_owned(),
         );
     }
+}
+
+pub async fn current_user(login_user_info: LoginUserInfo) -> impl Responder {
+    let user_info = query_user_by_id(&login_user_info.userId);
+    let url = if user_info.avatar_url.is_some() {
+        user_info.avatar_url.unwrap()
+    }else {
+        ' '.to_string()
+    };
+    let resp = LoginUserResponse {
+        nickname: user_info.nickname.to_string(),
+        userId: user_info.id,
+        appName: "appName".to_string(),
+        avatarUrl: url,
+        autoRenewProductExpireTimeMs: 0,
+    };
+    return box_actix_rest_response(resp);
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {

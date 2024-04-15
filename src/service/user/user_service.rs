@@ -14,3 +14,15 @@ pub fn query_user_by_product_id(request: &LoginReq, prod_id: &i32) -> User {
         .expect("query user failed");
     return db_user;
 }
+
+pub fn query_user_by_id(u_id: &i64) -> User {
+    use crate::model::diesel::dolphin::dolphin_schema::users::dsl::*;
+    let predicate =
+        crate::model::diesel::dolphin::dolphin_schema::users::id.eq(u_id);
+    let db_user = users
+        .filter(&predicate)
+        .limit(1)
+        .first::<User>(&mut get_conn())
+        .expect("query user by id failed");
+    return db_user;
+}
