@@ -17,6 +17,24 @@ table! {
 }
 
 table! {
+    oauth2_refresh_token (id) {
+        id -> Int8,
+        refresh_token -> Varchar,
+        user_id -> Int8,
+        expire_date -> Int8,
+        created_time -> Int8,
+        updated_time -> Int8,
+        replaced_by -> Nullable<Varchar>,
+        revoked_by_ip -> Nullable<Varchar>,
+        revoked_date -> Nullable<Varchar>,
+        device_id -> Varchar,
+        app_type -> Nullable<Int4>,
+        auth_mode -> Nullable<Int4>,
+        app_id -> Nullable<Varchar>,
+    }
+}
+
+table! {
     users (id) {
         id -> Int8,
         nickname -> Varchar,
@@ -44,5 +62,6 @@ table! {
 
 allow_tables_to_appear_in_same_query!(
     apps,
+    oauth2_refresh_token,
     users,
 );

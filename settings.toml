@@ -1,2 +1,3 @@
 [infra]
 port=8081
+app_cached_key="global:app:"

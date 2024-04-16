@@ -8,7 +8,7 @@ use serde::Deserialize;
 use crate::model::diesel::dolphin::dolphin_schema::*;
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
-#[diesel(table_name = apps)]
+#[diesel(table_name = "apps")]
 pub struct App {
     pub id: i32,
     pub app_name: String,
@@ -23,6 +23,26 @@ pub struct App {
     pub app_tag: Option<String>,
     pub auth_mode: i16,
     pub product_id: i32,
+}
+
+#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[diesel(table_name = "oauth2_refresh_token")]
+pub struct Oauth2RefreshToken {
+    pub id: i64,
+    pub refresh_token: String,
+    pub user_id: i64,
+    pub expire_date: i64,
+    pub created_by_ip: Option</* TODO: unknown type Nullable<Cidr> */>,
+    pub created_time: i64,
+    pub updated_time: i64,
+    pub replaced_by: Option<String>,
+    pub revoked_by_ip: Option<String>,
+    pub revoked_date: Option<String>,
+    pub created_by_ipv6: Option</* TODO: unknown type Nullable<Cidr> */>,
+    pub device_id: String,
+    pub app_type: Option<i32>,
+    pub auth_mode: Option<i32>,
+    pub app_id: Option<String>,
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]

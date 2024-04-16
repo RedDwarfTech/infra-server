@@ -6,6 +6,7 @@ with_docs = false
 
 filter = { only_tables = [
     "users",
-    "apps"
+    "apps",
+    "oauth2_refresh_token"
 ] }
 
