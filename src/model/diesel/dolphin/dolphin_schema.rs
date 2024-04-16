@@ -30,7 +30,7 @@ table! {
         device_id -> Varchar,
         app_type -> Nullable<Int4>,
         auth_mode -> Nullable<Int4>,
-        app_id -> Nullable<Varchar>,
+        app_id -> Varchar,
     }
 }
 

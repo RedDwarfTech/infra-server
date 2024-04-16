@@ -66,5 +66,5 @@ pub struct Oauth2RefreshToken {
     pub device_id: String,
     pub app_type: Option<i32>,
     pub auth_mode: Option<i32>,
-    pub app_id: Option<String>,
+    pub app_id: String,
 }
