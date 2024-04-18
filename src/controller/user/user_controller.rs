@@ -61,10 +61,10 @@ pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder 
         };
         return box_actix_rest_response(login_resp);
     } else {
-        let incre_resp = increase_failed_count(form.0.phone);
-        if let Err(e) = incre_resp {
-            error!("increase login failed failed: {}", e);
-        }
+        increase_failed_count(form.0.phone);
+        //if let Err(e) = incre_resp {
+        //    error!("increase login failed failed: {}", e);
+        //}
         return box_error_actix_rest_response(
             "LOGIN_INFO_NOT_MATCH",
             "0030010001".to_owned(),
