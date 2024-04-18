@@ -1,13 +1,16 @@
 use crate::{
     model::{
-        diesel::dolphin::custom_dolphin_models::App, resp::auth::auth_resp::AuthResp, user::auth::access_token_refresh_req::AccessTokenRefreshReq
+        diesel::dolphin::custom_dolphin_models::App, resp::auth::auth_resp::AuthResp,
+        user::auth::access_token_refresh_req::AccessTokenRefreshReq,
     },
     service::{app::app_service::query_cached_app, oauth::oauth_service::query_refresh_token},
 };
 use actix_web::{web, Responder};
 use rust_wheel::{
     common::wrapper::actix_http_resp::box_actix_rest_response,
-    model::user::{jwt_auth::create_access_token_by_payload, jwt_payload::JwtPayload},
+    model::user::{
+        jwt_auth::create_access_token, jwt_payload::JwtPayload, rd_user_info::RdUserInfo,
+    },
 };
 use sha256::digest;
 
@@ -21,7 +24,13 @@ pub async fn refresh_access_token(
     let token = query_refresh_token(&val);
     let app = query_cached_app(&token.app_id);
     let claim = generate_claim(&token.user_id, &token.device_id, app);
-    let access_token = create_access_token_by_payload(&claim);
+    let rd_user = RdUserInfo {
+        id: claim.userId,
+        nickname: "nickname".to_owned(),
+        device_id: claim.deviceId,
+        app_id: claim.appId,
+    };
+    let access_token = create_access_token(&rd_user);
     let resp = AuthResp::from(access_token);
     return box_actix_rest_response(resp);
 }

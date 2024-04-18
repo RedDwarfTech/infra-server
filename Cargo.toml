@@ -27,3 +27,5 @@ uuid = {version = "1.4.1",features = [
     "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
 ]}
 sha256 = "1.5.0"
+chrono = "0.4"
+log4rs = "1.2.0"
