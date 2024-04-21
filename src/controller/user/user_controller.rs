@@ -5,7 +5,7 @@ use crate::service::app::app_service::{query_app_by_app_id, query_cached_app};
 use crate::{
     model::user::login::login_req::LoginReq, service::user::user_service::query_user_by_product_id,
 };
-use actix_web::{post, web, Responder};
+use actix_web::{get, post, web, Responder};
 use log::error;
 use rust_wheel::common::util::security_util::get_sha;
 use rust_wheel::common::wrapper::actix_http_resp::box_actix_rest_response;
@@ -17,11 +17,6 @@ use rust_wheel::model::user::jwt_auth::create_access_token;
 use rust_wheel::model::user::login_user_info::LoginUserInfo;
 use rust_wheel::model::user::web_jwt_payload::WebJwtPayload;
 use uuid::Uuid;
-
-#[derive(serde::Deserialize)]
-pub struct FileQueryParams {
-    pub file_id: String,
-}
 
 /// User login
 ///
@@ -96,6 +91,17 @@ fn increase_failed_count(user_name: String) {
     }
 }
 
+/// Current user
+///
+/// current user
+#[utoipa::path(
+    context_path = "/infra/user/current-user",
+    path = "/",
+    responses(
+        (status = 200, description = "get current user")
+    )
+)]
+#[get("/current-user")]
 pub async fn current_user(login_user_info: LoginUserInfo) -> impl Responder {
     let app = query_cached_app(&login_user_info.appId);
     let cur_user = get_cached_user(&login_user_info, &app);
@@ -103,6 +109,8 @@ pub async fn current_user(login_user_info: LoginUserInfo) -> impl Responder {
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {
-    let scope = web::scope("/infra/user").service(login);
+    let scope = web::scope("/infra/user")
+    .service(login)
+    .service(current_user);
     conf.service(scope);
 }

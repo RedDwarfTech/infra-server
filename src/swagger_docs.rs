@@ -12,7 +12,8 @@ use crate::controller::user::user_controller;
 #[derive(OpenApi)]
 #[openapi(
     paths(
-        user_controller::login
+        user_controller::login,
+        user_controller::current_user
     ),
     components(
         schemas(
