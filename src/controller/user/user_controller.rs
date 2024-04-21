@@ -105,6 +105,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/infra/user")
             .route("/list", web::get().to(get_file))
-            .route("/login", web::put().to(login)),
+            .route("/login", web::post().to(login)),
     );
 }
