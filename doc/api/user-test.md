@@ -32,7 +32,7 @@ curl -X 'PUT' 'http://localhost:8081/infra/user/login' \
 
 
 ```bash
-curl 
+curl -X GET -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEwMywiZGV2aWNlSWQiOiIzNmQ3MGZhOGZjOWU0NmY0MzViY2QzOGVjNDFiODZlOSIsImFwcElkIjoibjI5UGEyOVdTMSIsImx0IjoxLCJldCI6MCwicGlkIjoxM30._WtyerfX8Ghl9VmYskZHwCSSd1Pqx_OG_DIh6o0xiEo' http://localhost:8081/infra/user/current-user
 ```
 
 

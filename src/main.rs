@@ -17,8 +17,6 @@ use rust_wheel::config::app::app_conf_reader::get_app_config;
 use utoipa_swagger_ui::SwaggerUi;
 use crate::swagger_docs::ApiDoc;
 use utoipa::OpenApi;
-use utoipa_rapidoc::RapiDoc;
-
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
