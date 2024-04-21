@@ -104,7 +104,6 @@ pub async fn current_user(login_user_info: LoginUserInfo) -> impl Responder {
 
 pub fn config(conf: &mut web::ServiceConfig) {
     let scope = web::scope("/infra/user")
-        .service(get_file)
         .service(login);
     conf.service(scope);
 }
