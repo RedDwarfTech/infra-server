@@ -15,7 +15,7 @@ pub fn comp_current_user(login_user_info: &LoginUserInfo) -> RdUserInfo {
 }
 
 pub fn get_cached_user(login_user_info: &LoginUserInfo, app: &App) -> RdUserInfo {
-    let user_cached_key = get_user_cached_key(&app.app_abbr, &login_user_info.userId);
+    let user_cached_key = get_user_cached_key(&app.app_id, &login_user_info.userId);
     let cached_user_info = sync_get_str(&user_cached_key);
     if cached_user_info.is_some() {
         let u_model: RdUserInfo = serde_json::from_str(&cached_user_info.unwrap()).unwrap();
