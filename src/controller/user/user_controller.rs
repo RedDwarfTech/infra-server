@@ -5,7 +5,7 @@ use crate::service::app::app_service::{query_app_by_app_id, query_cached_app};
 use crate::{
     model::user::login::login_req::LoginReq, service::user::user_service::query_user_by_product_id,
 };
-use actix_web::{web, Responder};
+use actix_web::{get, web, Responder};
 use rust_wheel::common::util::security_util::get_sha;
 use rust_wheel::common::wrapper::actix_http_resp::box_actix_rest_response;
 use rust_wheel::common::wrapper::actix_http_resp::box_error_actix_rest_response;
@@ -23,6 +23,17 @@ pub struct FileQueryParams {
     pub file_id: String,
 }
 
+/// Root Endpoint
+///
+/// Hello World Example
+#[utoipa::path(
+    context_path = "/v1",
+    path = "/",
+    responses(
+        (status = 200, description = "Hello World!")
+    )
+)]
+#[get("/")]
 pub async fn get_file(_params: web::Query<FileQueryParams>) -> impl Responder {
     box_actix_rest_response("ok")
 }
@@ -95,11 +106,8 @@ pub async fn current_user(login_user_info: LoginUserInfo) -> impl Responder {
     return box_actix_rest_response(cur_user);
 }
 
-pub fn config(cfg: &mut web::ServiceConfig) {
-    cfg.service(
-        web::scope("/infra/user")
-            .route("/list", web::get().to(get_file))
-            .route("/login", web::post().to(login))
-            .route("/current-user", web::get().to(current_user)),
-    );
+pub fn config(conf: &mut web::ServiceConfig) {
+    let scope = web::scope("/infra/user")
+        .service(get_file);
+    conf.service(scope);
 }
