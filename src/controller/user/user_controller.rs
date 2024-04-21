@@ -23,21 +23,6 @@ pub struct FileQueryParams {
     pub file_id: String,
 }
 
-/// get file list
-///
-/// get file list
-#[utoipa::path(
-    context_path = "/v1",
-    path = "/",
-    responses(
-        (status = 200, description = "Hello World!")
-    )
-)]
-#[get("/")]
-pub async fn get_file(_params: web::Query<FileQueryParams>) -> impl Responder {
-    box_actix_rest_response("ok")
-}
-
 /// User login
 ///
 /// user login
@@ -119,6 +104,7 @@ pub async fn current_user(login_user_info: LoginUserInfo) -> impl Responder {
 
 pub fn config(conf: &mut web::ServiceConfig) {
     let scope = web::scope("/infra/user")
-        .service(get_file);
+        .service(get_file)
+        .service(login);
     conf.service(scope);
 }
