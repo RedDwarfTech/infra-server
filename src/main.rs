@@ -11,6 +11,7 @@ pub mod controller;
 pub mod model;
 pub mod service;
 pub mod common;
+pub mod composite;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

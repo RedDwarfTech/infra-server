@@ -8,7 +8,7 @@ serde = { version = "1.0.64", features = ["derive"] }
 serde_json = "1.0.64"
 actix-web = "4"
 actix-web-validator = "5.0.1"
-rust_wheel = { git = "https://github.com/jiangxiaoqiang/rust_wheel.git", branch = "diesel2.0", features = [
+rust_wheel = { git = "https://github.com/jiangxiaoqiang/rust_wheel.git", branch = "main", features = [
     "model",
     "common",
     "rwconfig",
@@ -29,3 +29,4 @@ uuid = {version = "1.4.1",features = [
 sha256 = "1.5.0"
 chrono = "0.4"
 log4rs = "1.2.0"
+log = "0.4.0"
