@@ -43,11 +43,11 @@ pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder 
     }
     let app_info = query_app_by_app_id(&form.0.app_id);
     let single_user: User = query_user_by_product_id(&form.0, &app_info.product_id);
-    let pwd_salt = single_user.salt;
+    let pwd_salt = single_user.salt.clone();
     let sha_password = get_sha(String::from(&form.password), &pwd_salt);
     if sha_password.eq(&single_user.pwd.as_str()) {
         let rd_user = WebJwtPayload {
-            userId: single_user.id,
+            userId: single_user.id.clone(),
             deviceId: form.0.device_id,
             appId: form.0.app_id,
             lt: 1,
@@ -57,12 +57,12 @@ pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder 
         let uuid = Uuid::new_v4();
         let access_token = create_access_token(&rd_user);
         let login_resp: LoginResponse = LoginResponse {
-            registerTime: single_user.register_time,
+            registerTime: single_user.register_time.clone(),
             refreshToken: uuid.to_string(),
             accessToken: access_token,
             nickname: single_user.nickname.to_string(),
         };
-        store_login_user(&app_info.app_id, &single_user.id, &login_resp);
+        store_login_user(&rd_user, &single_user, &app_info);
         return box_actix_rest_response(login_resp);
     } else {
         increase_failed_count(form.0.phone);
