@@ -12,8 +12,8 @@ use crate::controller::user::user_controller;
 #[derive(OpenApi)]
 #[openapi(
     paths(
-        super::controller::user::handler::index,
-        user_controller::get_file
+        user_controller::get_file,
+        user_controller::login
     ),
     components(
         schemas(

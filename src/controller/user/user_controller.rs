@@ -23,9 +23,9 @@ pub struct FileQueryParams {
     pub file_id: String,
 }
 
-/// Root Endpoint
+/// get file list
 ///
-/// Hello World Example
+/// get file list
 #[utoipa::path(
     context_path = "/v1",
     path = "/",
@@ -38,8 +38,19 @@ pub async fn get_file(_params: web::Query<FileQueryParams>) -> impl Responder {
     box_actix_rest_response("ok")
 }
 
-// https://stackoverflow.com/questions/72748775/error-the-trait-handler-is-not-implemented-for-fn-httpresponse
+/// User login
+///
+/// user login
+#[utoipa::path(
+    context_path = "/infra/user/login",
+    path = "/",
+    responses(
+        (status = 200, description = "support user login")
+    )
+)]
+#[get("/login")]
 pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder {
+    // https://stackoverflow.com/questions/72748775/error-the-trait-handler-is-not-implemented-for-fn-httpresponse
     let login_failed_key = get_app_config("infra.login_failed_key");
     let user_failed_key = format!("{}:{}", login_failed_key, form.0.phone);
     let app_str = sync_get_str(&user_failed_key);
