@@ -5,7 +5,8 @@ use crate::service::app::app_service::{query_app_by_app_id, query_cached_app};
 use crate::{
     model::user::login::login_req::LoginReq, service::user::user_service::query_user_by_product_id,
 };
-use actix_web::{get, web, Responder};
+use actix_web::{post, web, Responder};
+use log::error;
 use rust_wheel::common::util::security_util::get_sha;
 use rust_wheel::common::wrapper::actix_http_resp::box_actix_rest_response;
 use rust_wheel::common::wrapper::actix_http_resp::box_error_actix_rest_response;
@@ -16,7 +17,6 @@ use rust_wheel::model::user::jwt_auth::create_access_token;
 use rust_wheel::model::user::login_user_info::LoginUserInfo;
 use rust_wheel::model::user::web_jwt_payload::WebJwtPayload;
 use uuid::Uuid;
-use log::error;
 
 #[derive(serde::Deserialize)]
 pub struct FileQueryParams {
@@ -33,7 +33,7 @@ pub struct FileQueryParams {
         (status = 200, description = "support user login")
     )
 )]
-#[get("/login")]
+#[post("/login")]
 pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder {
     // https://stackoverflow.com/questions/72748775/error-the-trait-handler-is-not-implemented-for-fn-httpresponse
     let login_failed_key = get_app_config("infra.login_failed_key");
@@ -103,7 +103,6 @@ pub async fn current_user(login_user_info: LoginUserInfo) -> impl Responder {
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {
-    let scope = web::scope("/infra/user")
-        .service(login);
+    let scope = web::scope("/infra/user").service(login);
     conf.service(scope);
 }
