@@ -5,7 +5,7 @@ use crate::{
     },
     service::{app::app_service::query_cached_app, oauth::oauth_service::query_refresh_token},
 };
-use actix_web::{web, Responder};
+use actix_web::{get, web, Responder};
 use rust_wheel::{
     common::wrapper::actix_http_resp::box_actix_rest_response,
     model::user::{jwt_auth::create_access_token, web_jwt_payload::WebJwtPayload},
@@ -34,9 +34,24 @@ pub async fn refresh_access_token(
     return box_actix_rest_response(resp);
 }
 
-pub fn config(cfg: &mut web::ServiceConfig) {
-    cfg.service(
-        web::scope("/infra/auth")
-            .route("/refresh-access-token", web::get().to(refresh_access_token)),
-    );
+/// Current user
+///
+/// current user
+#[utoipa::path(
+    context_path = "/infra/user/current-user",
+    path = "/",
+    responses(
+        (status = 200, description = "verify access token")
+    )
+)]
+#[get("/access_token/verify")]
+pub async fn verify_access_token() -> impl Responder {
+
+    return box_actix_rest_response("ok");
+}
+
+pub fn config(conf: &mut web::ServiceConfig) {
+    let scope = web::scope("/infra/auth")
+    .service(verify_access_token);
+    conf.service(scope);
 }

@@ -9,11 +9,12 @@ pub fn query_user_by_product_id(request: &LoginReq, prod_id: &i32) -> User {
     let predicate = crate::model::diesel::dolphin::dolphin_schema::users::phone
         .eq(request.phone.clone())
         .and(crate::model::diesel::dolphin::dolphin_schema::users::product_id.eq(prod_id.clone()));
+    let err_msg = format!("{}{}","query user by product id failed,prod_id:", prod_id);
     let db_user = users
         .filter(&predicate)
         .limit(1)
         .first::<User>(&mut get_conn())
-        .expect("query user failed");
+        .expect(&err_msg);
     return db_user;
 }
 

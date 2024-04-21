@@ -9,11 +9,12 @@ pub fn query_app_by_app_id(filter_app_id: &String) -> App {
     use crate::model::diesel::dolphin::dolphin_schema::apps::dsl::*;
     let predicate =
         crate::model::diesel::dolphin::dolphin_schema::apps::app_id.eq(filter_app_id);
+    let err_msg = format!("{}{}","query app failed, id: ", filter_app_id);
     let db_user = apps
         .filter(&predicate)
         .limit(1)
         .first::<App>(&mut get_conn())
-        .expect("query user failed");
+        .expect(&err_msg);
     return db_user;
 }
 
