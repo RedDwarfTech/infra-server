@@ -13,6 +13,7 @@ use crate::controller::user::user_controller;
 use actix_web::App;
 use actix_web::HttpServer;
 use controller::monitor::health_controller;
+use controller::user::auth_controller;
 use rust_wheel::config::app::app_conf_reader::get_app_config;
 use utoipa_swagger_ui::SwaggerUi;
 use crate::swagger_docs::ApiDoc;
@@ -39,6 +40,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .configure(user_controller::config)
             .configure(health_controller::config)
+            .configure(auth_controller::config)
             .service(
                 SwaggerUi::new("/docs-v1/{_:.*}").url("/api-docs/openapi.json", ApiDoc::openapi()),
             )
