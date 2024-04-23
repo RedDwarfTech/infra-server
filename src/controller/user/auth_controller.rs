@@ -7,6 +7,7 @@ use crate::{
     HASHMAP,
 };
 use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
+use log::{logger, warn};
 use rust_wheel::{
     common::wrapper::actix_http_resp::box_actix_rest_response,
     model::user::{
@@ -50,8 +51,9 @@ pub async fn refresh_access_token(
 )]
 #[get("/access_token/verify")]
 pub async fn verify_access_token(req: HttpRequest) -> impl Responder {
-    let uri = req.uri();
-    if HASHMAP.contains_key(&uri.to_string().as_str()) {
+    let url_path = req.uri().path();
+    warn!("{}{}", "url path: ", url_path);
+    if HASHMAP.contains_key(&url_path) {
         return box_actix_rest_response("ok");
     }
     let access_token = get_auth_token(&req);
