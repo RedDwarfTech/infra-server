@@ -54,8 +54,7 @@ pub async fn verify_access_token(req: HttpRequest) -> impl Responder {
     if HASHMAP.contains_key(&uri.to_string().as_str()) {
         return box_actix_rest_response("ok");
     }
-    let headers = req.headers();
-    let access_token = get_auth_token(headers);
+    let access_token = get_auth_token(&req);
     let valid = verify_jwt_token(&access_token.as_str());
     if valid {
         return box_actix_rest_response("ok");
