@@ -33,3 +33,4 @@ log = "0.4.0"
 utoipa = { version = "4", features = ["actix_extras"] }
 utoipa-swagger-ui = { version = "6.0.0", features = ["actix-web", "debug-embed"] }
 utoipa-rapidoc = { version = "3.0.0", features = ["actix-web"] }
+lazy_static = "1.4.0"

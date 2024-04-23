@@ -18,6 +18,18 @@ use utoipa_swagger_ui::SwaggerUi;
 use crate::swagger_docs::ApiDoc;
 use utoipa::OpenApi;
 use utoipa_rapidoc::RapiDoc;
+use lazy_static::lazy_static;
+use std::collections::HashMap;
+
+lazy_static! {
+    static ref HASHMAP: HashMap<&'static str, &'static str> = {
+        let mut m = HashMap::new();
+        m.insert("/texpub/user/login", "foo");
+        m.insert("/texpub/user/reg", "bar");
+        m.insert("/texpub/auth/access-token/refresh", "baz");
+        m
+    };
+}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
