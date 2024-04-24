@@ -11,5 +11,6 @@ WORKDIR /app
 ENV ROCKET_ADDRESS=0.0.0.0
 COPY --from=builder /app/settings.toml /app
 COPY --from=builder /app/target/release/infra-server /app/
+COPY --from=builder /home/rust/src/log4rs.yaml /app
 RUN apt-get update -y && apt-get install curl libpq5 -y
 CMD ["./infra-server"]
