@@ -34,6 +34,7 @@ lazy_static! {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    log4rs::init_file("log4rs.yaml", Default::default()).unwrap();
     let port: u16 = get_app_config("infra.port").parse().unwrap();
     let address = ("0.0.0.0", port);
     HttpServer::new(|| {

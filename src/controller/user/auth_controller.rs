@@ -7,7 +7,7 @@ use crate::{
     HASHMAP,
 };
 use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
-use log::{logger, warn};
+use log::warn;
 use rust_wheel::{
     common::wrapper::actix_http_resp::box_actix_rest_response,
     model::user::{
