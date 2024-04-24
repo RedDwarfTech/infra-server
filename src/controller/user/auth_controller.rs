@@ -3,11 +3,9 @@ use crate::{
         resp::auth::auth_resp::AuthResp,
         user::auth::access_token_refresh_req::AccessTokenRefreshReq,
     },
-    service::{app::app_service::query_cached_app, oauth::oauth_service::query_refresh_token},
-    HASHMAP,
+    service::{app::app_service::query_cached_app, oauth::oauth_service::query_refresh_token}
 };
 use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
-use log::warn;
 use rust_wheel::{
     common::wrapper::actix_http_resp::box_actix_rest_response,
     model::user::{
@@ -51,11 +49,6 @@ pub async fn refresh_access_token(
 )]
 #[get("/access_token/verify")]
 pub async fn verify_access_token(req: HttpRequest) -> impl Responder {
-    let url_path = req.uri().path();
-    warn!("{}{}", "url path: ", url_path);
-    if HASHMAP.contains_key(&url_path) {
-        return box_actix_rest_response("ok");
-    }
     let access_token = get_auth_token(&req);
     let valid = verify_jwt_token(&access_token.as_str());
     if valid {
