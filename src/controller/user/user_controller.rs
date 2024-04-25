@@ -1,3 +1,5 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use crate::common::cache::user_cache::store_login_user;
 use crate::composite::user::user_comp::get_cached_user;
 use crate::model::diesel::dolphin::custom_dolphin_models::User;
@@ -46,6 +48,14 @@ pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder 
     let pwd_salt = single_user.salt.clone();
     let sha_password = get_sha(String::from(&form.password), &pwd_salt);
     if sha_password.eq(&single_user.pwd.as_str()) {
+        let now = SystemTime::now();
+        // 过期时间为当前时间加上 1 小时
+        let exp = now
+            .checked_add(std::time::Duration::new(7200, 0))
+            .expect("Unable to calculate expiration time")
+            .duration_since(UNIX_EPOCH)
+            .expect("SystemTime before UNIX EPOCH!");
+        let exp_timestamp = exp.as_secs() as usize;
         let rd_user = WebJwtPayload {
             userId: single_user.id.clone(),
             deviceId: form.0.device_id,
@@ -53,6 +63,7 @@ pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder 
             lt: 1,
             et: 0,
             pid: app_info.product_id,
+            exp: exp_timestamp
         };
         let uuid = Uuid::new_v4();
         let access_token = create_access_token(&rd_user);
@@ -110,7 +121,7 @@ pub async fn current_user(login_user_info: LoginUserInfo) -> impl Responder {
 
 pub fn config(conf: &mut web::ServiceConfig) {
     let scope = web::scope("/infra/user")
-    .service(login)
-    .service(current_user);
+        .service(login)
+        .service(current_user);
     conf.service(scope);
 }
