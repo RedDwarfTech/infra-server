@@ -2,8 +2,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::{
     model::{
+        req::user::auth::access_token_refresh_req::AccessTokenRefreshReq,
         resp::auth::auth_resp::AuthResp,
-        user::auth::access_token_refresh_req::AccessTokenRefreshReq,
     },
     service::{app::app_service::query_cached_app, oauth::oauth_service::query_refresh_token},
 };

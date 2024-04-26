@@ -4,9 +4,7 @@ use crate::common::cache::user_cache::store_login_user;
 use crate::composite::user::user_comp::get_cached_user;
 use crate::model::diesel::dolphin::custom_dolphin_models::User;
 use crate::service::app::app_service::{query_app_by_app_id, query_cached_app};
-use crate::{
-    model::user::login::login_req::LoginReq, service::user::user_service::query_user_by_product_id,
-};
+use crate::service::user::user_service::query_user_by_product_id;
 use actix_web::{get, post, web, Responder};
 use log::error;
 use rust_wheel::common::util::security_util::get_sha;
@@ -19,6 +17,7 @@ use rust_wheel::model::user::jwt_auth::create_access_token;
 use rust_wheel::model::user::login_user_info::LoginUserInfo;
 use rust_wheel::model::user::web_jwt_payload::WebJwtPayload;
 use uuid::Uuid;
+use crate::model::req::user::login::login_req::LoginReq;
 
 /// User login
 ///
@@ -63,7 +62,7 @@ pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder 
             lt: 1,
             et: 0,
             pid: app_info.product_id,
-            exp: exp_timestamp
+            exp: exp_timestamp,
         };
         let uuid = Uuid::new_v4();
         let access_token = create_access_token(&rd_user);

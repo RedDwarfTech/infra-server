@@ -20,6 +20,7 @@ diesel = { version = "2.1.0", features = [
     "64-column-tables",
     "chrono",
     "serde_json",
+    "numeric"
 ] }
 uuid = {version = "1.4.1",features = [
     "v4",                # Lets you generate random UUIDs
@@ -34,3 +35,5 @@ utoipa = { version = "4", features = ["actix_extras"] }
 utoipa-swagger-ui = { version = "6.0.0", features = ["actix-web", "debug-embed"] }
 utoipa-rapidoc = { version = "3.0.0", features = ["actix-web"] }
 lazy_static = "1.4.0"
+# https://github.com/diesel-rs/diesel/issues/1879
+bigdecimal = {version = "0.4", features = ["serde"]}

@@ -17,6 +17,27 @@ table! {
 }
 
 table! {
+    iap_product (id) {
+        id -> Int8,
+        product_id -> Int4,
+        product_type -> Int4,
+        online_status -> Int4,
+        created_time -> Int8,
+        updated_time -> Int8,
+        product_title -> Varchar,
+        description -> Varchar,
+        price -> Numeric,
+        raw_price -> Numeric,
+        currency_code -> Nullable<Varchar>,
+        app_id -> Varchar,
+        sort -> Int4,
+        deleted -> Int4,
+        amount -> Int4,
+        period -> Int4,
+    }
+}
+
+table! {
     oauth2_refresh_token (id) {
         id -> Int8,
         refresh_token -> Varchar,
@@ -62,6 +83,7 @@ table! {
 
 allow_tables_to_appear_in_same_query!(
     apps,
+    iap_product,
     oauth2_refresh_token,
     users,
 );

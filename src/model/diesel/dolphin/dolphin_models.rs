@@ -7,6 +7,7 @@ use serde::Serialize;
 use serde::Deserialize;
 use crate::model::diesel::dolphin::dolphin_schema::*;
 
+use bigdecimal::BigDecimal;
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
 #[diesel(table_name = "apps")]
 pub struct App {
@@ -26,6 +27,27 @@ pub struct App {
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[diesel(table_name = "iap_product")]
+pub struct IapProduct {
+    pub id: i64,
+    pub product_id: i32,
+    pub product_type: i32,
+    pub online_status: i32,
+    pub created_time: i64,
+    pub updated_time: i64,
+    pub product_title: String,
+    pub description: String,
+    pub price: BigDecimal,
+    pub raw_price: BigDecimal,
+    pub currency_code: Option<String>,
+    pub app_id: String,
+    pub sort: i32,
+    pub deleted: i32,
+    pub amount: i32,
+    pub period: i32,
+}
+
+#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
 #[diesel(table_name = "oauth2_refresh_token")]
 pub struct Oauth2RefreshToken {
     pub id: i64,
@@ -42,7 +64,7 @@ pub struct Oauth2RefreshToken {
     pub device_id: String,
     pub app_type: Option<i32>,
     pub auth_mode: Option<i32>,
-    pub app_id: Option<String>,
+    pub app_id: String,
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
