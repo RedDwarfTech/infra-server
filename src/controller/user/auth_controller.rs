@@ -8,8 +8,11 @@ use crate::{
     service::{app::app_service::query_cached_app, oauth::oauth_service::query_refresh_token},
 };
 use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
+use log::error;
 use rust_wheel::{
-    common::wrapper::actix_http_resp::box_actix_rest_response,
+    common::{
+        error::jwt_token_error::JwtTokenError, wrapper::actix_http_resp::box_actix_rest_response,
+    },
     model::user::{
         jwt_auth::{create_access_token, get_auth_token, verify_jwt_token},
         web_jwt_payload::WebJwtPayload,
@@ -62,10 +65,22 @@ pub async fn refresh_access_token(
 pub async fn verify_access_token(req: HttpRequest) -> impl Responder {
     let access_token = get_auth_token(&req);
     let valid = verify_jwt_token(&access_token.as_str());
-    if valid {
-        return box_actix_rest_response("ok");
-    } else {
-        return HttpResponse::Unauthorized().finish();
+    match valid {
+        JwtTokenError::Valid => {
+            return box_actix_rest_response("ok");
+        }
+        JwtTokenError::Invalid => {
+            error!("Invalid access token, token:{}", access_token);
+            return HttpResponse::Unauthorized().finish();
+        }
+        JwtTokenError::Expired => {
+            error!("access token expired, token:{}", access_token);
+            return HttpResponse::Unauthorized().finish();
+        }
+        JwtTokenError::OtherError => {
+            error!("other issue, token:{}", access_token);
+            return HttpResponse::Unauthorized().finish();
+        }
     }
 }
 
