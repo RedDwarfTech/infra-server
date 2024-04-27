@@ -22,7 +22,7 @@ pub async fn prod_list(login_user_info: LoginUserInfo) -> impl Responder {
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {
-    let scope = web::scope("/infra/product")
+    let scope = web::scope("/infra/goods")
         .service(prod_list);
     conf.service(scope);
 }
