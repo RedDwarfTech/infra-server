@@ -9,6 +9,8 @@ filter = { only_tables = [
     "apps",
     "oauth2_refresh_token",
     "iap_product",
-    "app_map"
+    "app_map",
+    "orders",
+    "order_items"
 ] }
 

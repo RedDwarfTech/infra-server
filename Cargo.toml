@@ -38,3 +38,4 @@ lazy_static = "1.4.0"
 # https://github.com/diesel-rs/diesel/issues/1879
 bigdecimal = {version = "0.4", features = ["serde"]}
 labrador = {version ="0.2.3", features = ["alipay"]}
+rustflake = "0.1.1"

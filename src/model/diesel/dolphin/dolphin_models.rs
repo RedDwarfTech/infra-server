@@ -23,7 +23,7 @@ pub struct AppMap {
     pub app_public_key: String,
     pub payed_redirect_url: Option<String>,
     pub notify_url: Option<String>,
-    pub qr_pay_model: Option<i16>,
+    pub qr_pay_model: i16,
     pub app_secret: Option<String>,
 }
 
@@ -73,17 +73,46 @@ pub struct Oauth2RefreshToken {
     pub refresh_token: String,
     pub user_id: i64,
     pub expire_date: i64,
-    pub created_by_ip: Option</* TODO: unknown type Nullable<Cidr> */>,
     pub created_time: i64,
     pub updated_time: i64,
     pub replaced_by: Option<String>,
     pub revoked_by_ip: Option<String>,
     pub revoked_date: Option<String>,
-    pub created_by_ipv6: Option</* TODO: unknown type Nullable<Cidr> */>,
     pub device_id: String,
     pub app_type: Option<i32>,
     pub auth_mode: Option<i32>,
     pub app_id: String,
+}
+
+#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[diesel(table_name = "order_items")]
+pub struct OrderItem {
+    pub order_id: String,
+    pub iap_product_id: String,
+    pub quantity: i32,
+    pub price: BigDecimal,
+    pub created_time: i64,
+    pub updated_time: i64,
+    pub id: i64,
+}
+
+#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[diesel(table_name = "orders")]
+pub struct Order {
+    pub id: i32,
+    pub user_id: i64,
+    pub total_price: BigDecimal,
+    pub order_status: i32,
+    pub third_app_id: String,
+    pub app_id: String,
+    pub pay_channel: i32,
+    pub created_time: i64,
+    pub updated_time: i64,
+    pub qr_pay_model: i16,
+    pub subject: String,
+    pub product_code: String,
+    pub order_id: String,
+    pub seller_id: String,
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]

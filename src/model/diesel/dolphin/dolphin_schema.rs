@@ -12,7 +12,7 @@ table! {
         app_public_key -> Varchar,
         payed_redirect_url -> Nullable<Varchar>,
         notify_url -> Nullable<Varchar>,
-        qr_pay_model -> Nullable<Int2>,
+        qr_pay_model -> Int2,
         app_secret -> Nullable<Varchar>,
     }
 }
@@ -75,6 +75,37 @@ table! {
 }
 
 table! {
+    order_items (id) {
+        order_id -> Varchar,
+        iap_product_id -> Varchar,
+        quantity -> Int4,
+        price -> Numeric,
+        created_time -> Int8,
+        updated_time -> Int8,
+        id -> Int8,
+    }
+}
+
+table! {
+    orders (id) {
+        id -> Int4,
+        user_id -> Int8,
+        total_price -> Numeric,
+        order_status -> Int4,
+        third_app_id -> Varchar,
+        app_id -> Varchar,
+        pay_channel -> Int4,
+        created_time -> Int8,
+        updated_time -> Int8,
+        qr_pay_model -> Int2,
+        subject -> Varchar,
+        product_code -> Varchar,
+        order_id -> Varchar,
+        seller_id -> Varchar,
+    }
+}
+
+table! {
     users (id) {
         id -> Int8,
         nickname -> Varchar,
@@ -105,5 +136,7 @@ allow_tables_to_appear_in_same_query!(
     apps,
     iap_product,
     oauth2_refresh_token,
+    order_items,
+    orders,
     users,
 );
