@@ -17,3 +17,14 @@ pub fn query_goods_list(prod_id: &i32) -> Vec<IapProduct> {
         .expect(&err_msg);
     return products;
 }
+
+pub fn query_goods_by_id(prod_id: &i64) -> IapProduct {
+    use crate::model::diesel::dolphin::dolphin_schema::iap_product as prod_table;
+    let predicate = prod_table::id.eq(prod_id.clone());
+    let err_msg = format!("{}{}","query by product id failed,prod_id:", prod_id);
+    let product = prod_table::table
+        .filter(&predicate)
+        .first::<IapProduct>(&mut get_conn())
+        .expect(&err_msg);
+    return product;
+}

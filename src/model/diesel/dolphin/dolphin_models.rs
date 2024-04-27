@@ -9,6 +9,25 @@ use crate::model::diesel::dolphin::dolphin_schema::*;
 
 use bigdecimal::BigDecimal;
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[diesel(table_name = "app_map")]
+pub struct AppMap {
+    pub id: i64,
+    pub app_id: String,
+    pub third_app_id: String,
+    pub third_channel: i32,
+    pub created_time: i64,
+    pub updated_time: i64,
+    pub login_redirect_url: String,
+    pub login_success_redirect_url: String,
+    pub app_private_key: String,
+    pub app_public_key: String,
+    pub payed_redirect_url: Option<String>,
+    pub notify_url: Option<String>,
+    pub qr_pay_model: Option<i16>,
+    pub app_secret: Option<String>,
+}
+
+#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
 #[diesel(table_name = "apps")]
 pub struct App {
     pub id: i32,

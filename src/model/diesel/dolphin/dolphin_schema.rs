@@ -1,4 +1,23 @@
 table! {
+    app_map (id) {
+        id -> Int8,
+        app_id -> Varchar,
+        third_app_id -> Varchar,
+        third_channel -> Int4,
+        created_time -> Int8,
+        updated_time -> Int8,
+        login_redirect_url -> Varchar,
+        login_success_redirect_url -> Varchar,
+        app_private_key -> Varchar,
+        app_public_key -> Varchar,
+        payed_redirect_url -> Nullable<Varchar>,
+        notify_url -> Nullable<Varchar>,
+        qr_pay_model -> Nullable<Int2>,
+        app_secret -> Nullable<Varchar>,
+    }
+}
+
+table! {
     apps (id) {
         id -> Int4,
         app_name -> Varchar,
@@ -82,6 +101,7 @@ table! {
 }
 
 allow_tables_to_appear_in_same_query!(
+    app_map,
     apps,
     iap_product,
     oauth2_refresh_token,
