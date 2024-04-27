@@ -77,7 +77,7 @@ table! {
 table! {
     order_items (id) {
         order_id -> Varchar,
-        iap_product_id -> Varchar,
+        iap_product_id -> Int8,
         quantity -> Int4,
         price -> Numeric,
         created_time -> Int8,
