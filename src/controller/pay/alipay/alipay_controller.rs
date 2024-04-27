@@ -2,7 +2,7 @@ use crate::{
     composite::pay::alipay::pay_impl::prepare_pay, model::req::goods::goods_req::GoodsReq,
     service::goods::goods_service::query_goods_by_id,
 };
-use actix_web::{get, web, Responder};
+use actix_web::{ post, web, Responder};
 use rust_wheel::{
     common::wrapper::actix_http_resp::box_actix_rest_response,
     model::user::login_user_info::LoginUserInfo,
@@ -18,7 +18,7 @@ use rust_wheel::{
         (status = 200, description = "create order")
     )
 )]
-#[get("/createOrder")]
+#[post("/createOrder")]
 pub async fn create_order(
     params: web::Query<GoodsReq>,
     login_user_info: LoginUserInfo,
