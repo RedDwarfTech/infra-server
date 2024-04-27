@@ -8,6 +8,7 @@ filter = { only_tables = [
     "users",
     "apps",
     "oauth2_refresh_token",
-    "iap_product"
+    "iap_product",
+    "app_map"
 ] }
 
