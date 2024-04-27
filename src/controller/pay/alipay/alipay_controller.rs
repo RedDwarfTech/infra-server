@@ -20,10 +20,10 @@ use rust_wheel::{
 )]
 #[post("/createOrder")]
 pub async fn create_order(
-    params: web::Query<GoodsReq>,
+    form: web::Json<GoodsReq>,
     login_user_info: LoginUserInfo,
 ) -> impl Responder {
-    let good = query_goods_by_id(&params.0.productId);
+    let good = query_goods_by_id(&form.0.productId);
     prepare_pay(&login_user_info, &good);
     return box_actix_rest_response("ok");
 }
