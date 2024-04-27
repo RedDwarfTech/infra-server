@@ -61,7 +61,7 @@ pub fn do_alipay(biz_content: &AlipayOrderBizContent, amap: &AppMap, iap: &IapPr
         terminal_info: Some("".to_owned()),
         prod_code: Some("".to_owned()),
         biz_model: Some(pay_model),
-        need_encrypt: true,
+        need_encrypt: false,
         udf_params: udf_params,
     };
     
