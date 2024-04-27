@@ -5,7 +5,7 @@ use crate::{
         req::user::auth::access_token_refresh_req::AccessTokenRefreshReq,
         resp::auth::auth_resp::AuthResp,
     },
-    service::{app::app_service::query_cached_app, oauth::oauth_service::query_refresh_token},
+    service::{app::app_service::query_cached_app, oauth::oauth_service::{query_refresh_token, update_refresh_token_exp_time}},
 };
 use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
 use log::error;
@@ -27,8 +27,8 @@ pub async fn refresh_access_token(
     // even the user get the shd256 token, it could not used to refresh the token
     let input = String::from(&form.0.refresh_token);
     let val = digest(input);
-    let token = query_refresh_token(&val);
-    let app = query_cached_app(&token.app_id);
+    let db_refresh_token = query_refresh_token(&val);
+    let app = query_cached_app(&db_refresh_token.app_id);
     let now = SystemTime::now();
     // 过期时间为当前时间加上 1 小时
     let exp = now
@@ -38,8 +38,8 @@ pub async fn refresh_access_token(
         .expect("SystemTime before UNIX EPOCH!");
     let exp_timestamp = exp.as_secs() as usize;
     let rd_user = WebJwtPayload {
-        userId: token.user_id,
-        deviceId: token.device_id,
+        userId: db_refresh_token.user_id.clone(),
+        deviceId: db_refresh_token.device_id.clone(),
         appId: app.app_id,
         lt: 1,
         et: 0,
@@ -47,6 +47,7 @@ pub async fn refresh_access_token(
         exp: exp_timestamp,
     };
     let access_token = create_access_token(&rd_user);
+    update_refresh_token_exp_time(&db_refresh_token);
     let resp = AuthResp::from(access_token);
     return box_actix_rest_response(resp);
 }
