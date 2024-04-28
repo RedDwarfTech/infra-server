@@ -5,9 +5,12 @@ use crate::{
         req::user::auth::access_token_refresh_req::AccessTokenRefreshReq,
         resp::auth::auth_resp::AuthResp,
     },
-    service::{app::app_service::query_cached_app, oauth::oauth_service::{query_refresh_token, update_refresh_token_exp_time}},
+    service::{
+        app::app_service::query_cached_app,
+        oauth::oauth_service::{query_refresh_token, update_refresh_token_exp_time},
+    },
 };
-use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
+use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
 use log::error;
 use rust_wheel::{
     common::{
@@ -20,6 +23,17 @@ use rust_wheel::{
 };
 use sha256::digest;
 
+/// Refresh token
+///
+/// Refresh token
+#[utoipa::path(
+    context_path = "/infra/auth/access_token/refresh",
+    path = "/",
+    responses(
+        (status = 200, description = "refresh access token")
+    )
+)]
+#[post("/access_token/refresh")]
 pub async fn refresh_access_token(
     form: actix_web_validator::Json<AccessTokenRefreshReq>,
 ) -> impl Responder {
@@ -86,6 +100,8 @@ pub async fn verify_access_token(req: HttpRequest) -> impl Responder {
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {
-    let scope = web::scope("/infra/auth").service(verify_access_token);
+    let scope = web::scope("/infra/auth")
+        .service(verify_access_token)
+        .service(refresh_access_token);
     conf.service(scope);
 }
