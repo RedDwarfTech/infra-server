@@ -33,7 +33,9 @@ use sha256::digest;
         (status = 200, description = "refresh access token")
     )
 )]
-#[post("/access_token/refresh")]
+// https://developers.google.com/search/docs/crawling-indexing/url-structure
+// the stackoverflow also use '-' rather than '_'
+#[post("/access-token/refresh")]
 pub async fn refresh_access_token(
     form: actix_web_validator::Json<AccessTokenRefreshReq>,
 ) -> impl Responder {
@@ -44,7 +46,7 @@ pub async fn refresh_access_token(
     let db_refresh_token = query_refresh_token(&val);
     let app = query_cached_app(&db_refresh_token.app_id);
     let now = SystemTime::now();
-    // 过期时间为当前时间加上 1 小时
+    // the expire time is 1 hour
     let exp = now
         .checked_add(std::time::Duration::new(7200, 0))
         .expect("Unable to calculate expiration time")
@@ -66,9 +68,9 @@ pub async fn refresh_access_token(
     return box_actix_rest_response(resp);
 }
 
-/// Current user
+/// Verify access token
 ///
-/// current user
+/// Verify access token
 #[utoipa::path(
     context_path = "/infra/auth/access_token",
     path = "/",

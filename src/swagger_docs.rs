@@ -8,12 +8,15 @@ use utoipa::{
 
 use crate::types;
 use crate::controller::user::user_controller;
+use crate::controller::user::auth_controller;
 
 #[derive(OpenApi)]
 #[openapi(
     paths(
         user_controller::login,
-        user_controller::current_user
+        user_controller::current_user,
+        auth_controller::refresh_access_token,
+        auth_controller::verify_access_token
     ),
     components(
         schemas(
