@@ -2,10 +2,13 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::common::cache::user_cache::store_login_user;
 use crate::composite::user::user_comp::get_cached_user;
+use crate::model::diesel::custom::oauth::oauth_add::OauthAdd;
 use crate::model::diesel::dolphin::custom_dolphin_models::User;
 use crate::service::app::app_service::{query_app_by_app_id, query_cached_app};
+use crate::service::oauth::oauth_service::insert_refresh_token;
 use crate::service::user::user_service::query_user_by_product_id;
 use actix_web::{get, post, web, Responder};
+use chrono::Local;
 use log::error;
 use rust_wheel::common::util::security_util::get_sha;
 use rust_wheel::common::wrapper::actix_http_resp::box_actix_rest_response;
@@ -57,8 +60,8 @@ pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder 
         let exp_timestamp = exp.as_secs() as usize;
         let rd_user = WebJwtPayload {
             userId: single_user.id.clone(),
-            deviceId: form.0.device_id,
-            appId: form.0.app_id,
+            deviceId: form.0.device_id.clone(),
+            appId: form.0.app_id.clone(),
             lt: 1,
             et: 0,
             pid: app_info.product_id,
@@ -72,7 +75,18 @@ pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder 
             accessToken: access_token,
             nickname: single_user.nickname.to_string(),
         };
+        let now = Local::now();
+        let future_time = now + chrono::Duration::days(7);
+        let future_timestamp = future_time.timestamp();
+        let oauth = OauthAdd {
+            refresh_token: uuid.to_string(),
+            user_id: single_user.id.clone(),
+            expire_date: future_timestamp,
+            device_id: form.0.device_id.clone(),
+            app_id: form.0.app_id,
+        };
         store_login_user(&rd_user, &single_user, &app_info);
+        insert_refresh_token(&oauth);
         return box_actix_rest_response(login_resp);
     } else {
         increase_failed_count(form.0.phone);

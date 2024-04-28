@@ -1,6 +1,7 @@
 use chrono::Local;
 use crate::common::db::database::get_conn;
 use crate::diesel::prelude::*;
+use crate::model::diesel::custom::oauth::oauth_add::OauthAdd;
 use crate::model::diesel::dolphin::custom_dolphin_models::Oauth2RefreshToken;
 use crate::model::diesel::dolphin::dolphin_schema::oauth2_refresh_token::expire_date;
 
@@ -13,6 +14,14 @@ pub fn query_refresh_token(input_token: &String) -> Oauth2RefreshToken {
         .first::<Oauth2RefreshToken>(&mut get_conn())
         .expect("query refresh token failed");
     return token;
+}
+
+pub fn insert_refresh_token(oauth_new: &OauthAdd) {
+    use crate::model::diesel::dolphin::dolphin_schema::oauth2_refresh_token as oauth_table;    
+     diesel::insert_into(oauth_table::dsl::oauth2_refresh_token)
+        .values(oauth_new)
+        .get_result::<Oauth2RefreshToken>(&mut get_conn())
+        .expect("failed to add new refresh token");
 }
 
 pub fn update_refresh_token_exp_time(db_refresh_token: &Oauth2RefreshToken){
