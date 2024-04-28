@@ -6,5 +6,5 @@ pub struct AccessTokenRefreshReq {
     pub refresh_token: String,
     #[validate(length(min = 1))]
     pub grant_type: String,
-    pub scope: String
+    pub scope: Option<String>,
 }
