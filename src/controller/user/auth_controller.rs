@@ -6,8 +6,7 @@ use crate::{
         resp::auth::auth_resp::AuthResp,
     },
     service::{
-        app::app_service::query_cached_app,
-        oauth::oauth_service::{query_refresh_token, update_refresh_token_exp_time},
+        app::app_service::query_cached_app, oauth::oauth_service::{query_refresh_token, update_refresh_token_exp_time},
     },
 };
 use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
@@ -17,7 +16,9 @@ use rust_wheel::{
         error::jwt_token_error::JwtTokenError, wrapper::actix_http_resp::box_actix_rest_response,
     },
     model::user::{
-        jwt_auth::{create_access_token, get_auth_token, verify_jwt_token},
+        jwt_auth::{
+            create_access_token, get_auth_token_from_traefik, verify_jwt_token,
+        },
         web_jwt_payload::WebJwtPayload,
     },
 };
@@ -80,7 +81,7 @@ pub async fn refresh_access_token(
 )]
 #[get("/access_token/verify")]
 pub async fn verify_access_token(req: HttpRequest) -> impl Responder {
-    let access_token = get_auth_token(&req);
+    let access_token = get_auth_token_from_traefik(&req);
     let valid = verify_jwt_token(&access_token.as_str());
     match valid {
         JwtTokenError::Valid => {
