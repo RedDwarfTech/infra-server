@@ -28,8 +28,6 @@ lazy_static! {
     static ref HASHMAP: HashMap<&'static str, &'static str> = {
         let mut m = HashMap::new();
         m.insert("/texpub/user/login", "foo");
-        m.insert("/texpub/user/reg", "bar");
-        m.insert("/texpub/auth/access-token/refresh", "baz");
         m
     };
 }
