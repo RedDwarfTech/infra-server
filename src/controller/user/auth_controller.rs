@@ -24,9 +24,9 @@ use rust_wheel::{
 };
 use sha256::digest;
 
-/// Refresh token
+/// Refresh access token
 ///
-/// Refresh token
+/// Refresh access token
 #[utoipa::path(
     context_path = "/infra/auth/access_token/refresh",
     path = "/",
