@@ -63,7 +63,7 @@ pub fn do_alipay(biz_content: &AlipayOrderBizContent, amap: &AppMap, iap: &IapPr
         udf_params: udf_params,
     };
     
-    let client = AlipayClient::<RedisStorage>::new(&amap.app_private_key, false);
+    let client = AlipayClient::<RedisStorage>::new(&amap.third_app_id, false);
     match client.wap_pay("POST".into(), param) {
         Ok(res) => {
             let r: AlipayBaseResponse = res;
