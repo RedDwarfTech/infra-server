@@ -107,6 +107,8 @@ pub struct AppMap {
     pub login_success_redirect_url: String,
     pub app_private_key: String,
     pub app_public_key: String,
+    pub app_private_key_pkcs1: String,
+    pub app_public_key_pkcs1: String,
     pub payed_redirect_url: Option<String>,
     pub notify_url: Option<String>,
     pub qr_pay_model: i16,

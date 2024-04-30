@@ -68,8 +68,8 @@ pub fn do_alipay(
     };
 
     let client = AlipayClient::<RedisStorage>::new(&amap.third_app_id, false)
-        .set_private_key(&amap.app_private_key).unwrap()
-        .set_alipay_public_key(&amap.app_public_key)
+        .set_private_key(&amap.app_private_key_pkcs1).unwrap()
+        .set_alipay_public_key(&amap.app_public_key_pkcs1)
         .set_sign_type("RSA2")
         .set_format("json")
         .set_charset("UTF-8");

@@ -10,6 +10,8 @@ table! {
         login_success_redirect_url -> Varchar,
         app_private_key -> Varchar,
         app_public_key -> Varchar,
+        app_private_key_pkcs1 -> Varchar,
+        app_public_key_pkcs1 -> Varchar,
         payed_redirect_url -> Nullable<Varchar>,
         notify_url -> Nullable<Varchar>,
         qr_pay_model -> Int2,
