@@ -3,7 +3,7 @@ use crate::service::order::order_service::create_new_order;
 use bigdecimal::ToPrimitive;
 use labrador::AlipayTradeWapPayModel;
 use labrador::{
-    redis_store::RedisStorage, AlipayBaseResponse, AlipayClient, AlipayTradeWapPayRequest,
+    redis_store::RedisStorage, AlipayBaseResponse, AlipayClient, AlipayTradeWapPayRequest
 };
 use log::{error, warn};
 use rust_wheel::model::{enums::rd_pay_type::RdPayType, user::login_user_info::LoginUserInfo};
@@ -69,7 +69,10 @@ pub fn do_alipay(
 
     let client = AlipayClient::<RedisStorage>::new(&amap.third_app_id, false)
         .set_private_key(&amap.app_private_key).unwrap()
-        .set_alipay_public_key(&amap.app_public_key);
+        .set_alipay_public_key(&amap.app_public_key)
+        .set_sign_type("RSA2")
+        .set_format("json")
+        .set_charset("UTF-8");
     match client.wap_pay("POST".into(), param) {
         Ok(res) => {
             let r: AlipayBaseResponse = res;
