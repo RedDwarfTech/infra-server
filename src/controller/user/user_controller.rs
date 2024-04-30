@@ -7,7 +7,7 @@ use crate::model::diesel::dolphin::custom_dolphin_models::User;
 use crate::service::app::app_service::{query_app_by_app_id, query_cached_app};
 use crate::service::oauth::oauth_service::insert_refresh_token;
 use crate::service::user::user_service::query_user_by_product_id;
-use actix_web::{get, post, web, Responder};
+use actix_web::{get, post, put, web, Responder};
 use chrono::Local;
 use log::error;
 use rust_wheel::common::util::security_util::get_sha;
@@ -132,9 +132,27 @@ pub async fn current_user(login_user_info: LoginUserInfo) -> impl Responder {
     return box_actix_rest_response(cur_user);
 }
 
+/// Change password
+///
+/// Change password
+#[utoipa::path(
+    context_path = "/infra/user/change-pwd",
+    path = "/",
+    responses(
+        (status = 200, description = "change password")
+    )
+)]
+#[put("/pwd")]
+pub async fn change_passowrd(login_user_info: LoginUserInfo) -> impl Responder {
+    let app = query_cached_app(&login_user_info.appId);
+    let cur_user = get_cached_user(&login_user_info, &app);
+    return box_actix_rest_response(cur_user);
+}
+
 pub fn config(conf: &mut web::ServiceConfig) {
     let scope = web::scope("/infra/user")
         .service(login)
+        .service(change_passowrd)
         .service(current_user);
     conf.service(scope);
 }
