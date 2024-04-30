@@ -3,6 +3,8 @@
 #![allow(unused)]
 #![allow(clippy::all)]
 
+use std::fmt::Display;
+
 use serde::Serialize;
 use serde::Deserialize;
 use crate::model::diesel::dolphin::dolphin_schema::*;

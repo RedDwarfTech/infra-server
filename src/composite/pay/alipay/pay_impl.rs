@@ -80,7 +80,7 @@ pub fn do_alipay(
             return Some(r);
         }
         Err(err) => {
-            error!("do alipay error: {}", err);
+            error!("do alipay error: {}, amap: {}", err, serde_json::to_string(amap).unwrap_or_default());
             None
         }
     }
