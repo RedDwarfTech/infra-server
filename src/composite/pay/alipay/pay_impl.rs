@@ -1,15 +1,15 @@
-use std::collections::BTreeMap;
-use std::env;
 use crate::diesel::Connection;
 use crate::service::order::order_service::create_new_order;
-use labrador::AlipayTradeWapPayModel;
 use bigdecimal::ToPrimitive;
+use labrador::AlipayTradeWapPayModel;
 use labrador::{
     redis_store::RedisStorage, AlipayBaseResponse, AlipayClient, AlipayTradeWapPayRequest,
 };
 use log::{error, warn};
 use rust_wheel::model::{enums::rd_pay_type::RdPayType, user::login_user_info::LoginUserInfo};
 use rustflake::Snowflake;
+use std::collections::BTreeMap;
+use std::env;
 
 use crate::model::diesel::custom::order::order_item_add::OrderItemAdd;
 use crate::{
@@ -24,7 +24,11 @@ use crate::{
     service::app::app_map_service::query_app_map_by_app_id,
 };
 
-pub fn do_alipay(biz_content: &AlipayOrderBizContent, amap: &AppMap, iap: &IapProduct) -> Option<AlipayBaseResponse> {
+pub fn do_alipay(
+    biz_content: &AlipayOrderBizContent,
+    amap: &AppMap,
+    iap: &IapProduct,
+) -> Option<AlipayBaseResponse> {
     let pay_model = AlipayTradeWapPayModel {
         out_trade_no: biz_content.outTradeNo.clone(),
         total_amount: biz_content.totalAmount,
@@ -62,8 +66,10 @@ pub fn do_alipay(biz_content: &AlipayOrderBizContent, amap: &AppMap, iap: &IapPr
         need_encrypt: false,
         udf_params: udf_params,
     };
-    
-    let client = AlipayClient::<RedisStorage>::new(&amap.third_app_id, false);
+
+    let client = AlipayClient::<RedisStorage>::new(&amap.third_app_id, false)
+        .set_private_key(&amap.app_private_key).unwrap()
+        .set_alipay_public_key(&amap.app_public_key);
     match client.wap_pay("POST".into(), param) {
         Ok(res) => {
             let r: AlipayBaseResponse = res;
@@ -107,15 +113,17 @@ pub fn prepare_pay(login_user_info: &LoginUserInfo, iap: &IapProduct) {
         price: iap.price.clone(),
     };
     let mut connection = get_conn();
-    let result: Result<Option<AlipayBaseResponse>, diesel::result::Error> = connection.transaction(|conn| {
-        let local_app_map = app_map.clone();
-        let pay_result: Option<AlipayBaseResponse> = do_alipay(&biz_content, &local_app_map, iap);
-        if pay_result.is_some() {
-            create_new_order(&order_add, conn, &order_item);
-            return Ok(Some(pay_result.unwrap()));
-        }
-        Ok(None)
-    });
+    let result: Result<Option<AlipayBaseResponse>, diesel::result::Error> =
+        connection.transaction(|conn| {
+            let local_app_map = app_map.clone();
+            let pay_result: Option<AlipayBaseResponse> =
+                do_alipay(&biz_content, &local_app_map, iap);
+            if pay_result.is_some() {
+                create_new_order(&order_add, conn, &order_item);
+                return Ok(Some(pay_result.unwrap()));
+            }
+            Ok(None)
+        });
     if let Err(e) = result {
         error!("create order failed, {}", e)
     }
