@@ -92,7 +92,6 @@ pub fn do_alipay(
                 orderId: biz_content.outTradeNo.to_string(),
                 price: iap.price.to_string(),
             };
-            warn!("do alipay result: {}", serde_json::to_string(&r).unwrap());
             return Some(order_resp);
         }
         Err(err) => {

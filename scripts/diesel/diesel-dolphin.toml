@@ -11,6 +11,8 @@ filter = { only_tables = [
     "iap_product",
     "app_map",
     "orders",
-    "order_items"
+    "order_items",
+    "payments",
+    "order_items",
+    "user_sub"
 ] }
-

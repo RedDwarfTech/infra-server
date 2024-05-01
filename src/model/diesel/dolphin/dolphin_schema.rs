@@ -1,4 +1,26 @@
-table! {
+// @generated automatically by Diesel CLI.
+
+diesel::table! {
+    admin_users (id) {
+        id -> Int8,
+        nickname -> Varchar,
+        avatar_url -> Varchar,
+        phone -> Varchar,
+        updated_time -> Int8,
+        created_time -> Int8,
+        salt -> Varchar,
+        pwd -> Varchar,
+        sex -> Nullable<Int4>,
+        level_type -> Nullable<Varchar>,
+        phone_region -> Varchar,
+        country_code -> Int4,
+        user_status -> Int4,
+        user_name -> Varchar,
+        org_id -> Int4,
+    }
+}
+
+diesel::table! {
     app_map (id) {
         id -> Int8,
         app_id -> Varchar,
@@ -10,19 +32,21 @@ table! {
         login_success_redirect_url -> Varchar,
         app_private_key -> Varchar,
         app_public_key -> Varchar,
-        app_private_key_pkcs1 -> Varchar,
-        app_public_key_pkcs1 -> Varchar,
         payed_redirect_url -> Nullable<Varchar>,
         notify_url -> Nullable<Varchar>,
         qr_pay_model -> Int2,
         app_secret -> Nullable<Varchar>,
+        app_private_key_pkcs1 -> Varchar,
+        app_public_key_pkcs1 -> Varchar,
     }
 }
 
-table! {
+diesel::table! {
     apps (id) {
         id -> Int4,
+        #[max_length = 256]
         app_name -> Varchar,
+        #[max_length = 256]
         remark -> Varchar,
         created_time -> Int8,
         updated_time -> Int8,
@@ -37,7 +61,7 @@ table! {
     }
 }
 
-table! {
+diesel::table! {
     iap_product (id) {
         id -> Int8,
         product_id -> Int4,
@@ -58,7 +82,7 @@ table! {
     }
 }
 
-table! {
+diesel::table! {
     oauth2_refresh_token (id) {
         id -> Int8,
         refresh_token -> Varchar,
@@ -76,7 +100,7 @@ table! {
     }
 }
 
-table! {
+diesel::table! {
     order_items (id) {
         order_id -> Varchar,
         iap_product_id -> Int8,
@@ -88,7 +112,7 @@ table! {
     }
 }
 
-table! {
+diesel::table! {
     orders (id) {
         id -> Int4,
         user_id -> Int8,
@@ -107,7 +131,67 @@ table! {
     }
 }
 
-table! {
+diesel::table! {
+    payments (id) {
+        id -> Int8,
+        #[max_length = 32]
+        payment_id -> Varchar,
+        order_id -> Varchar,
+        amount -> Numeric,
+        status -> Int4,
+        created_time -> Int8,
+        updated_time -> Int8,
+    }
+}
+
+diesel::table! {
+    payments_legacy (id) {
+        #[max_length = 32]
+        payment_id -> Varchar,
+        order_id -> Varchar,
+        amount -> Numeric,
+        status -> Int4,
+        created_time -> Int8,
+        updated_time -> Int8,
+        id -> Int8,
+    }
+}
+
+diesel::table! {
+    user_sub (id) {
+        id -> Int8,
+        app_id -> Varchar,
+        product_id -> Int4,
+        iap_product_id -> Int8,
+        created_time -> Int8,
+        updated_time -> Int8,
+        user_id -> Int8,
+        sub_start_time -> Int8,
+        sub_end_time -> Int8,
+        enabled -> Int2,
+        order_id -> Varchar,
+        sub_start -> Timestamptz,
+        sub_end -> Timestamptz,
+    }
+}
+
+diesel::table! {
+    user_sub_legacy (id) {
+        app_id -> Varchar,
+        product_id -> Int4,
+        iap_product_id -> Varchar,
+        created_time -> Int8,
+        updated_time -> Int8,
+        user_id -> Int8,
+        sub_start_time -> Int8,
+        sub_end_time -> Int8,
+        enabled -> Int2,
+        order_id -> Varchar,
+        id -> Int8,
+    }
+}
+
+diesel::table! {
     users (id) {
         id -> Int8,
         nickname -> Varchar,
@@ -133,12 +217,17 @@ table! {
     }
 }
 
-allow_tables_to_appear_in_same_query!(
+diesel::allow_tables_to_appear_in_same_query!(
+    admin_users,
     app_map,
     apps,
     iap_product,
     oauth2_refresh_token,
     order_items,
     orders,
+    payments,
+    payments_legacy,
+    user_sub,
+    user_sub_legacy,
     users,
 );

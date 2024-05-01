@@ -28,7 +28,7 @@ use std::collections::HashMap;
 lazy_static! {
     static ref HASHMAP: HashMap<&'static str, &'static str> = {
         let mut m = HashMap::new();
-        m.insert("/texpub/user/login", "foo");
+        m.insert("/infra/alipay/notification/v1/alipaySeverNotification", "foo");
         m
     };
 }

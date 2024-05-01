@@ -1,12 +1,7 @@
-use crate::{
-    composite::pay::alipay::pay_impl::prepare_pay, model::req::goods::goods_req::GoodsReq,
-    service::goods::goods_service::query_goods_by_id,
-};
-use actix_web::{post, web, Responder};
-use rust_wheel::{
-    common::wrapper::actix_http_resp::box_actix_rest_response,
-    model::user::login_user_info::LoginUserInfo,
-};
+use actix_web::{post, web, HttpRequest, Responder};
+use log::warn;
+use rust_wheel::common::wrapper::actix_http_resp::box_actix_rest_response;
+use crate::composite::pay::alipay::alipay_callback_handler::handle_pay_callback;
 
 /// Recieve notifycation
 ///
@@ -19,12 +14,10 @@ use rust_wheel::{
     )
 )]
 #[post("/v1/alipaySeverNotification")]
-pub async fn alipay_server_notify(
-    form: web::Json<GoodsReq>,
-    login_user_info: LoginUserInfo,
-) -> impl Responder {
-    let good = query_goods_by_id(&form.0.productId);
-    prepare_pay(&login_user_info, &good);
+pub async fn alipay_server_notify(req: HttpRequest) -> impl Responder {
+    warn!("receive alipay callback");
+    let query_string = req.query_string();
+    handle_pay_callback(query_string);
     return box_actix_rest_response("ok");
 }
 
