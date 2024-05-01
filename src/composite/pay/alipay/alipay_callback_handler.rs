@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use diesel::Connection;
+use log::error;
 use serde_json::from_str;
 
 use crate::{common::db::database::get_conn, model::diesel::custom::pay::payment_add::PaymentAdd, service::pay::sys::payment_service::save_payment};
@@ -23,7 +24,9 @@ pub fn handle_pay_callback(query_string: &str){
         save_payment(&payment_new, conn);
         Ok(None)
     });
-    
+    if let Err(e) = result {
+        error!("handle pay callback failed, {}", e);
+    }
 }
 
 
