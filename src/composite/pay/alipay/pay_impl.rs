@@ -1,9 +1,10 @@
 use crate::diesel::Connection;
+use crate::model::resp::pay::alipay::order_resp::OrderResp;
 use crate::service::order::order_service::create_new_order;
 use bigdecimal::ToPrimitive;
 use labrador::AlipayTradeWapPayModel;
 use labrador::{
-    redis_store::RedisStorage, AlipayBaseResponse, AlipayClient, AlipayTradeWapPayRequest
+    redis_store::RedisStorage, AlipayBaseResponse, AlipayClient, AlipayTradeWapPayRequest,
 };
 use log::{error, warn};
 use rust_wheel::model::{enums::rd_pay_type::RdPayType, user::login_user_info::LoginUserInfo};
@@ -28,7 +29,7 @@ pub fn do_alipay(
     biz_content: &AlipayOrderBizContent,
     amap: &AppMap,
     iap: &IapProduct,
-) -> Option<AlipayBaseResponse> {
+) -> Option<OrderResp> {
     let pay_model = AlipayTradeWapPayModel {
         out_trade_no: biz_content.outTradeNo.clone(),
         total_amount: biz_content.totalAmount,
@@ -68,7 +69,8 @@ pub fn do_alipay(
     };
 
     let client = AlipayClient::<RedisStorage>::new(&amap.third_app_id, false)
-        .set_private_key(&amap.app_private_key_pkcs1).unwrap()
+        .set_private_key(&amap.app_private_key_pkcs1)
+        .unwrap()
         .set_alipay_public_key(&amap.app_public_key_pkcs1)
         .set_sign_type("RSA2")
         .set_format("json")
@@ -76,17 +78,26 @@ pub fn do_alipay(
     match client.wap_pay("POST".into(), param) {
         Ok(res) => {
             let r: AlipayBaseResponse = res;
+            let order_resp = OrderResp {
+                formText: r.body.clone().unwrap_or_default(),
+                orderId: biz_content.outTradeNo.to_string(),
+                price: iap.price.to_string(),
+            };
             warn!("do alipay result: {}", serde_json::to_string(&r).unwrap());
-            return Some(r);
+            return Some(order_resp);
         }
         Err(err) => {
-            error!("do alipay error: {}, amap: {}", err, serde_json::to_string(amap).unwrap_or_default());
+            error!(
+                "do alipay error: {}, amap: {}",
+                err,
+                serde_json::to_string(amap).unwrap_or_default()
+            );
             None
         }
     }
 }
 
-pub fn prepare_pay(login_user_info: &LoginUserInfo, iap: &IapProduct) {
+pub fn prepare_pay(login_user_info: &LoginUserInfo, iap: &IapProduct) -> OrderResp {
     let app_map = query_app_map_by_app_id(&login_user_info.appId, RdPayType::Alipay as i32);
     let mut snowflake = Snowflake::default();
     let snow_order_id = snowflake.generate().to_string();
@@ -116,18 +127,17 @@ pub fn prepare_pay(login_user_info: &LoginUserInfo, iap: &IapProduct) {
         price: iap.price.clone(),
     };
     let mut connection = get_conn();
-    let result: Result<Option<AlipayBaseResponse>, diesel::result::Error> =
-        connection.transaction(|conn| {
-            let local_app_map = app_map.clone();
-            let pay_result: Option<AlipayBaseResponse> =
-                do_alipay(&biz_content, &local_app_map, iap);
-            if pay_result.is_some() {
-                create_new_order(&order_add, conn, &order_item);
-                return Ok(Some(pay_result.unwrap()));
-            }
-            Ok(None)
-        });
-    if let Err(e) = result {
+    let result: Result<Option<OrderResp>, diesel::result::Error> = connection.transaction(|conn| {
+        let local_app_map = app_map.clone();
+        let pay_result: Option<OrderResp> = do_alipay(&biz_content, &local_app_map, iap);
+        if pay_result.is_some() {
+            create_new_order(&order_add, conn, &order_item);
+            return Ok(Some(pay_result.unwrap()));
+        }
+        Ok(None)
+    });
+    if let Err(e) = result.as_ref() {
         error!("create order failed, {}", e)
     }
+    return result.unwrap().unwrap_or_default();
 }
