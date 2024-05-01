@@ -15,6 +15,7 @@ use actix_web::HttpServer;
 use controller::goods::goods_controller;
 use controller::monitor::health_controller;
 use controller::pay::alipay::alipay_controller;
+use controller::pay::alipay::alipay_notify_controller;
 use controller::user::auth_controller;
 use rust_wheel::config::app::app_conf_reader::get_app_config;
 use utoipa_swagger_ui::SwaggerUi;
@@ -44,6 +45,7 @@ async fn main() -> std::io::Result<()> {
             .configure(auth_controller::config)
             .configure(goods_controller::config)
             .configure(alipay_controller::config)
+            .configure(alipay_notify_controller::config)
             .service(
                 SwaggerUi::new("/docs-v1/{_:.*}").url("/api-docs/openapi.json", ApiDoc::openapi()),
             )
