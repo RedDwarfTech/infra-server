@@ -26,3 +26,14 @@ pub fn query_order_by_order_id(o_id: &String, uid: &i64) -> Order {
         .expect("query order by order id failed");
     return db_order;
 }
+
+pub fn query_order_by_user_id(uid: &i64) -> Vec<Order> {
+    use crate::model::diesel::dolphin::dolphin_schema::orders as order_table;
+    let predicate = order_table::user_id.eq(uid);
+    let db_order = order_table::table
+        .filter(&predicate)
+        .limit(20)
+        .load::<Order>(&mut get_conn())
+        .expect("query order by order id failed");
+    return db_order;
+}
