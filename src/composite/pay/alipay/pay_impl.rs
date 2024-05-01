@@ -75,7 +75,7 @@ pub fn do_alipay(
         .set_sign_type("RSA2")
         .set_format("json")
         .set_charset("UTF-8");
-    match client.wap_pay("POST".into(), param) {
+    match client.pc_pay("POST".into(), param) {
         Ok(res) => {
             let r: AlipayBaseResponse = res;
             let order_resp = OrderResp {
