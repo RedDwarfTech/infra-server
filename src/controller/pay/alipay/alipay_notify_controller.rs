@@ -1,6 +1,5 @@
-use actix_web::{post, web, HttpRequest, Responder};
+use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
 use log::warn;
-use rust_wheel::common::wrapper::actix_http_resp::box_actix_rest_response;
 use crate::composite::pay::alipay::alipay_callback_handler::handle_pay_callback;
 
 /// Recieve notifycation
@@ -18,7 +17,7 @@ pub async fn alipay_server_notify(req: HttpRequest) -> impl Responder {
     warn!("receive alipay callback");
     let query_string = req.query_string();
     handle_pay_callback(query_string);
-    return box_actix_rest_response("ok");
+    return HttpResponse::Unauthorized().finish();
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {
