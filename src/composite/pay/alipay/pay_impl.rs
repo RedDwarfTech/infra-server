@@ -2,10 +2,8 @@ use crate::diesel::Connection;
 use crate::model::resp::pay::alipay::order_resp::OrderResp;
 use crate::service::order::order_service::create_new_order;
 use bigdecimal::ToPrimitive;
-use labrador::AlipayTradeWapPayModel;
-use labrador::{
-    redis_store::RedisStorage, AlipayBaseResponse, AlipayClient, AlipayTradeWapPayRequest,
-};
+use labrador::{AlipayTradePagePayModel, AlipayTradePagePayRequest};
+use labrador::{redis_store::RedisStorage, AlipayBaseResponse, AlipayClient};
 use log::{error, warn};
 use rust_wheel::model::{enums::rd_pay_type::RdPayType, user::login_user_info::LoginUserInfo};
 use rustflake::Snowflake;
@@ -30,21 +28,6 @@ pub fn do_alipay(
     amap: &AppMap,
     iap: &IapProduct,
 ) -> Option<OrderResp> {
-    let pay_model = AlipayTradeWapPayModel {
-        out_trade_no: biz_content.outTradeNo.clone(),
-        total_amount: biz_content.totalAmount,
-        subject: iap.product_title.clone(),
-        body: Some("()".to_owned()),
-        product_code: "()".to_owned(),
-        auth_token: Some("()".to_owned()),
-        quit_url: Some("()".to_owned()),
-        goods_detail: None,
-        extend_params: None,
-        time_expire: Some("()".to_owned()),
-        business_params: Some("()".to_owned()),
-        passback_params: Some("()".to_owned()),
-        merchant_order_no: Some(biz_content.outTradeNo.clone()),
-    };
     let return_url = format!(
         "{}{}{}{}{}",
         amap.payed_redirect_url.clone().unwrap(),
@@ -55,7 +38,29 @@ pub fn do_alipay(
     );
     let mut udf_params = BTreeMap::new();
     udf_params.insert("key1".to_owned(), "value1".to_owned());
-    let param = AlipayTradeWapPayRequest {
+
+    let pay_model = AlipayTradePagePayModel {
+        out_trade_no: biz_content.outTradeNo.clone(),
+        total_amount: biz_content.totalAmount,
+        subject: biz_content.subject.clone(),
+        body: Some("".to_owned()),
+        product_code: biz_content.productCode.clone(),
+        qr_pay_mode: Some(biz_content.qrPayMode.clone()),
+        qrcode_width: Some("".to_owned()),
+        quit_url: Some("".to_owned()),
+        goods_detail: None,
+        extend_params: None,
+        time_expire: Some("".to_owned()),
+        business_params: Some("".to_owned()),
+        promo_params: Some("".to_owned()),
+        integration_type: Some("".to_owned()),
+        request_from_url: Some("".to_owned()),
+        store_id: Some("".to_owned()),
+        sub_merchant: None,
+        invoice_info: None,
+        merchant_order_no: Some("".to_owned()),
+    };
+    let param = AlipayTradePagePayRequest {
         api_version: "1.0".to_owned(),
         notify_url: amap.notify_url.clone(),
         return_url: Some(return_url),
@@ -75,6 +80,9 @@ pub fn do_alipay(
         .set_sign_type("RSA2")
         .set_format("json")
         .set_charset("UTF-8");
+    //
+    // https://opensupport.alipay.com/support/technical-investigation
+    //
     match client.pc_pay("POST".into(), param) {
         Ok(res) => {
             let r: AlipayBaseResponse = res;
