@@ -19,6 +19,7 @@ use rust_wheel::model::response::user::login_response::LoginResponse;
 use rust_wheel::model::user::jwt_auth::create_access_token;
 use rust_wheel::model::user::login_user_info::LoginUserInfo;
 use rust_wheel::model::user::web_jwt_payload::WebJwtPayload;
+use sha256::digest;
 use uuid::Uuid;
 use crate::model::req::user::login::login_req::LoginReq;
 
@@ -79,7 +80,7 @@ pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder 
         let future_time = now + chrono::Duration::days(7);
         let future_timestamp = future_time.timestamp();
         let oauth = OauthAdd {
-            refresh_token: uuid.to_string(),
+            refresh_token: digest(uuid.to_string()),
             user_id: single_user.id.clone(),
             expire_date: future_timestamp,
             device_id: form.0.device_id.clone(),
