@@ -2,7 +2,7 @@
 
 
 ```bash
-curl -g -X POST https://localhost:8081/infra/alipay/notification/v1/alipaySeverNotification?voucher_detail_list=[{"amount":"0.20","merchantContribute":"0.00","name":"5折券","otherContribute":"0.20","type":"ALIPAY_DISCOUNT_VOUCHER","voucherId":"2016101200073002586200003BQ4"}]
+curl -g -X POST http://localhost:8081/infra/alipay/notification/v1/alipaySeverNotification?voucher_detail_list=[{"amount":"0.20","merchantContribute":"0.00","name":"5","otherContribute":"0.20","type":"ALIPAY_DISCOUNT_VOUCHER","voucherId":"2016101200073002586200003BQ4"}]
 ```
 
 
