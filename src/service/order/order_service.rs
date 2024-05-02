@@ -54,11 +54,11 @@ pub fn query_order_by_user_id(uid: &i64) -> Vec<Order> {
     return db_order;
 }
 
-pub fn update_order_status(oid: &i64, o_status: i32) {
+pub fn update_order_status(oid: &i64, o_status: i32, connection: &mut PgConnection) {
     use crate::model::diesel::dolphin::dolphin_schema::orders as order_table;
     let predicate = order_table::id.eq(oid);
     diesel::update(order_table::table.filter(predicate))
         .set(order_table::order_status.eq(o_status))
-        .get_result::<Order>(&mut get_conn())
+        .get_result::<Order>(connection)
         .expect("udpate order status failed");
 }

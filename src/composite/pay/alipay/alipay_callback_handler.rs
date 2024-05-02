@@ -5,8 +5,7 @@ use serde_json::from_str;
 use std::collections::HashMap;
 
 use crate::{
-    common::db::database::get_conn, model::diesel::custom::pay::payment_add::PaymentAdd,
-    service::pay::sys::payment_service::save_payment,
+    common::db::database::get_conn, composite::user::user_product_sub_handler::product_pay_success, model::diesel::custom::pay::payment_add::PaymentAdd, service::pay::sys::payment_service::save_payment
 };
 
 pub fn handle_pay_callback(query_string: &str) {
@@ -31,7 +30,7 @@ pub fn handle_pay_callback(query_string: &str) {
     let mut connection = get_conn();
     let result: Result<Option<&str>, diesel::result::Error> = connection.transaction(|conn| {
         save_payment(&payment_new, conn);
-
+        product_pay_success(&cb_order_id, conn);
         Ok(None)
     });
     if let Err(e) = result {
