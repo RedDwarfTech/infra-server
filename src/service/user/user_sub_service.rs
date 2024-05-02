@@ -1,5 +1,4 @@
 use crate::diesel::prelude::*;
-use crate::model::diesel::dolphin::custom_dolphin_models::User;
 use crate::{
     common::db::database::get_conn, model::diesel::dolphin::custom_dolphin_models::UserSub,
 };

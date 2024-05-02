@@ -1,4 +1,3 @@
-use chrono::Local;
 use diesel::PgConnection;
 use labrador::current_timestamp;
 use rust_wheel::model::enums::{

@@ -1,6 +1,7 @@
 use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
 use log::warn;
 use crate::composite::pay::alipay::alipay_callback_handler::handle_pay_callback;
+use crate::model::pay::callback::alipay_callback::AlipayCallback;
 
 /// Recieve notifycation
 ///
@@ -13,10 +14,9 @@ use crate::composite::pay::alipay::alipay_callback_handler::handle_pay_callback;
     )
 )]
 #[post("/v1/alipaySeverNotification")]
-pub async fn alipay_server_notify(req: HttpRequest) -> impl Responder {
-    warn!("receive alipay callback");
-    let query_string = req.query_string();
-    handle_pay_callback(query_string);
+pub async fn alipay_server_notify(payload: web::Json<AlipayCallback>) -> impl Responder {
+    warn!("receive alipay callback, payload: {:?}", payload.0);
+    handle_pay_callback(&payload.0);
     return HttpResponse::Unauthorized().finish();
 }
 
