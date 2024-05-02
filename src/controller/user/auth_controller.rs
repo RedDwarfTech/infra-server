@@ -10,7 +10,7 @@ use crate::{
     }, HASHMAP,
 };
 use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
-use log::error;
+use log::{error, warn};
 use rust_wheel::{
     common::{
         error::jwt_token_error::JwtTokenError, wrapper::actix_http_resp::box_actix_rest_response,
@@ -82,8 +82,10 @@ pub async fn refresh_access_token(
 #[get("/access_token/verify")]
 pub async fn verify_access_token(req: HttpRequest) -> impl Responder {
     let forward_url = get_forward_url_path(&req);
+    warn!("get forward url,{}",forward_url);
     if forward_url.is_some() {
         if HASHMAP.contains_key(forward_url.unwrap()) {
+            warn!("url did not need login,{}",forward_url);
             return box_actix_rest_response("ok");
         }
     }
