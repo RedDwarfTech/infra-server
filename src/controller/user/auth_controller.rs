@@ -82,10 +82,10 @@ pub async fn refresh_access_token(
 #[get("/access_token/verify")]
 pub async fn verify_access_token(req: HttpRequest) -> impl Responder {
     let forward_url = get_forward_url_path(&req);
-    warn!("get forward url,{}",forward_url);
+    warn!("get forward url,{:?}",forward_url);
     if forward_url.is_some() {
         if HASHMAP.contains_key(forward_url.unwrap()) {
-            warn!("url did not need login,{}",forward_url);
+            warn!("url did not need login,{:?}",forward_url);
             return box_actix_rest_response("ok");
         }
     }
