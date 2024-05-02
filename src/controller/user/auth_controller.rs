@@ -6,18 +6,21 @@ use crate::{
         resp::auth::auth_resp::AuthResp,
     },
     service::{
-        app::app_service::query_cached_app, oauth::oauth_service::{query_refresh_token, update_refresh_token_exp_time},
-    }, HASHMAP,
+        app::app_service::query_cached_app,
+        oauth::oauth_service::{query_refresh_token, update_refresh_token_exp_time},
+    },
+    HASHMAP,
 };
 use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
-use log::{error, warn};
+use log::error;
 use rust_wheel::{
     common::{
         error::jwt_token_error::JwtTokenError, wrapper::actix_http_resp::box_actix_rest_response,
     },
     model::user::{
         jwt_auth::{
-            create_access_token, get_auth_token_from_traefik, get_forward_url_path, verify_jwt_token
+            create_access_token, get_auth_token_from_traefik, get_forward_url_path,
+            verify_jwt_token,
         },
         web_jwt_payload::WebJwtPayload,
     },

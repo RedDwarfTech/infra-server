@@ -1,7 +1,6 @@
 use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
 use log::warn;
 use crate::composite::pay::alipay::alipay_callback_handler::handle_pay_callback;
-use crate::model::pay::callback::alipay_callback::AlipayCallback;
 
 /// Recieve notifycation
 ///
@@ -17,7 +16,7 @@ use crate::model::pay::callback::alipay_callback::AlipayCallback;
     context_path = "/infra/alipay/pay",
     path = "/",
     responses(
-        (status = 200, description = "Recieve notifycation")
+        (status = 200, description = "Recieve notification")
     )
 )]
 #[post("/v1/alipaySeverNotification")]

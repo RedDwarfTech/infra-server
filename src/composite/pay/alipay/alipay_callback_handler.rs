@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
+use crate::{
+    common::db::database::get_conn, composite::user::user_product_sub_handler::product_pay_success,
+    model::diesel::custom::pay::payment_add::PaymentAdd,
+    service::pay::sys::payment_service::save_payment,
+};
 use diesel::Connection;
 use log::{error, warn};
 use rust_wheel::model::enums::rd_pay_status::RdPayStatus;
-use serde_json::from_str;
-
-use crate::{
-    common::db::database::get_conn, composite::user::user_product_sub_handler::product_pay_success, model::{diesel::custom::pay::payment_add::PaymentAdd, pay::callback::alipay_callback::AlipayCallback}, service::pay::sys::payment_service::save_payment
-};
 
 pub fn handle_pay_callback(query_string: &String) {
     let params: HashMap<String, String> = parse_query(query_string);
@@ -37,6 +37,7 @@ pub fn handle_pay_callback(query_string: &String) {
 }
 
 fn parse_query(query: &str) -> HashMap<String, String> {
+    // https://stackoverflow.com/questions/43272935/how-do-i-decode-a-url-and-get-the-query-string-as-a-hashmap
     query
         .split('&')
         .filter_map(|s| {
