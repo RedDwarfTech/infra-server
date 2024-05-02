@@ -8,5 +8,6 @@ use bigdecimal::BigDecimal;
 pub struct PaymentAdd {
     pub payment_id: String,
     pub order_id: String,
-    pub amount: BigDecimal
+    pub amount: BigDecimal,
+    pub status: i32
 }

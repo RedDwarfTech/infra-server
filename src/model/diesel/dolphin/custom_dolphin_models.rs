@@ -120,7 +120,7 @@ pub struct AppMap {
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
 #[diesel(table_name = orders)]
 pub struct Order {
-    pub id: i32,
+    pub id: i64,
     pub user_id: i64,
     pub total_price: BigDecimal,
     pub order_status: i32,
