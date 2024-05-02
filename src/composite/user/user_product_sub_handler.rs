@@ -3,13 +3,12 @@ use rust_wheel::model::enums::{
 };
 
 use crate::{
-    model::diesel::dolphin::custom_dolphin_models::IapProduct,
+    model::diesel::dolphin::custom_dolphin_models::{IapProduct, UserSub},
     service::{
-        goods::goods_service::query_goods_by_id,
-        order::{
+        app::app_service::query_cached_app, goods::goods_service::query_goods_by_id, order::{
             order_item_service::query_order_item_by_oid,
             order_service::{query_order_by_out_trans_no, update_order_status},
-        },
+        }
     },
 };
 use log::{error, warn};
@@ -31,10 +30,15 @@ pub fn product_pay_success(out_trans_no: &String) {
 
 pub fn handle_sub_by_type(iap: &IapProduct, uid: i64, out_trans_no: &String) {
     if iap.product_type == ApplePayProductType::NonSubscription as i32 {
-        handle_non_subscribe();
+        handle_non_subscribe(iap, uid, out_trans_no);
     }
 }
 
-pub fn handle_non_subscribe() {
-    warn!("start handle non subscribe")
+pub fn handle_non_subscribe(iap: &IapProduct, uid: i64, out_trans_no: &String) {
+    warn!("start handle non subscribe");
+    let app = query_cached_app(&iap.app_id);
+
+    // let user_sub = UserSub{};
+
+
 }
