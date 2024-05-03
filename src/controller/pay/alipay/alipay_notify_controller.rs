@@ -12,6 +12,7 @@ use crate::composite::pay::alipay::alipay_callback_handler::handle_pay_callback;
 /// so we still need to parse the params from url 
 /// not from request body
 /// https://github.com/seanmonstar/httparse/issues/146
+/// https://opensupport.alipay.com/support/technical-investigation
 #[utoipa::path(
     context_path = "/infra/alipay/pay",
     path = "/",
@@ -21,9 +22,9 @@ use crate::composite::pay::alipay::alipay_callback_handler::handle_pay_callback;
 )]
 #[post("/v1/alipaySeverNotification")]
 pub async fn alipay_server_notify(req: HttpRequest) -> impl Responder {
-    warn!("receive alipay callback, params: {:?}", req.query_string());
+    warn!("receive alipay callback, params: {:?}, path: {}", req.query_string(), req.path());
     handle_pay_callback(&req.query_string().to_string());
-    return HttpResponse::Unauthorized().finish();
+    return HttpResponse::Ok().body("failed");
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {
