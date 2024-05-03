@@ -12,7 +12,8 @@ rust_wheel = { git = "https://github.com/jiangxiaoqiang/rust_wheel.git", branch 
     "model",
     "common",
     "rwconfig",
-    "texhub"
+    "texhub",
+    "alipay"
 ] }
 validator = { version = "0.16.1", features = ["derive"] }
 diesel = { version = "2.1.0", features = [
