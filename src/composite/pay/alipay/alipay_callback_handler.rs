@@ -42,9 +42,13 @@ pub fn handle_pay_callback(query_string: &String) {
     let appmap = query_app_map_by_third_app_id(cb_app_id, RdPayType::Alipay as i32);
     let verify_result = verify_callback(&appmap, &mut params.clone(), cb_sign);
     match verify_result {
-        Ok(data) => {
-            warn!("verify success, data: {},", data);
-        },
+        Ok(pass) => {
+            if pass {
+                warn!("verify success, data: {},", pass);
+            } else {
+                warn!("verify not pass, cb_sign:{},params:{:?}", cb_sign, params);
+            }
+        }
         Err(e) => {
             error!("verify facing error, {}, cb sign: {}", e, cb_sign);
         }
@@ -60,8 +64,10 @@ fn verify_callback(
     sign.set_private_key(&appmap.app_private_key_pkcs1)?;
     sign.set_public_key(&appmap.app_public_key_pkcs1)?;
     let sorted_source = get_sign_check_content_v1(params);
-    let is_passed: Result<bool, std::io::Error> =
-        sign.verify(&sorted_source.unwrap_or_default(), &base64::encode(signature));
+    let is_passed: Result<bool, std::io::Error> = sign.verify(
+        &sorted_source.unwrap_or_default(),
+        &base64::encode(signature),
+    );
     return is_passed;
 }
 
