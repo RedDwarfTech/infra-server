@@ -1,6 +1,6 @@
 use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
 use log::warn;
-use crate::composite::pay::alipay::alipay_callback_handler::handle_pay_callback;
+use crate::{composite::pay::alipay::alipay_callback_handler::handle_pay_callback, model::pay::callback::alipay_callback::AlipayCallback};
 
 /// Recieve notifycation
 ///
@@ -21,9 +21,9 @@ use crate::composite::pay::alipay::alipay_callback_handler::handle_pay_callback;
     )
 )]
 #[post("/v1/alipaySeverNotification")]
-pub async fn alipay_server_notify(req: HttpRequest) -> impl Responder {
-    warn!("receive alipay callback, params: {:?}, path: {}", req.query_string(), req.path());
-    handle_pay_callback(&req.query_string().to_string());
+pub async fn alipay_server_notify(form: web::Form<AlipayCallback>) -> impl Responder {
+    warn!("receive alipay callback, form: {:?}", form.0);
+    // handle_pay_callback(&req.query_string().to_string());
     return HttpResponse::Ok().body("failed");
 }
 
