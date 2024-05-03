@@ -41,3 +41,4 @@ bigdecimal = {version = "0.4", features = ["serde"]}
 labrador = {version ="0.2.3", features = ["alipay"]}
 rustflake = "0.1.1"
 serde_qs = "0.13"
+base64 = "0.13.0"
