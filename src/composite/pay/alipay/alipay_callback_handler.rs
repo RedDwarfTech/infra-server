@@ -39,7 +39,7 @@ pub fn handle_pay_callback(query_string: &String) {
             process_callback(&mut params);
         },
         Err(err) => {
-            error!("verify failed, params: {:?}, err:{}, content: {}", params, err, content.unwrap_or_default());
+            error!("verify failed, params: {:?}, err:{:?}", params, err);
             return
         },
     }
