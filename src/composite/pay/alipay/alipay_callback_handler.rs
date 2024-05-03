@@ -33,7 +33,7 @@ pub fn handle_pay_callback(query_string: &String) {
     // 4. 验证 app_id 是否为该商家本身。
     let cb_app_id = params.get("app_id").unwrap();
     let appmap = query_app_map_by_third_app_id(cb_app_id, RdPayType::Alipay as i32);
-    let check_result = rsa_check_v1(&mut params, appmap.app_public_key_pkcs1);
+    let check_result = rsa_check_v1(&mut params, appmap.app_public_key);
     if !check_result {
         error!("verify return false, {}", query_string);
         return;
