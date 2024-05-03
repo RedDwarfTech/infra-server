@@ -44,7 +44,7 @@ pub fn handle_pay_callback(query_string: &String) {
     let payment_new = PaymentAdd {
         payment_id: cb_payment_id.to_string(),
         order_id: cb_order_id.to_string(),
-        amount: total_amount.parse().expect("Failed to parse BigDecimal"),
+        amount: total_amount.parse().expect("Failed to parse BigDecimal in alipay callback"),
         status: RdPayStatus::Success as i32,
     };
     let mut connection = get_conn();
