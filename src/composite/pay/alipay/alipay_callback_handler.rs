@@ -66,7 +66,7 @@ fn verify_callback(
     let sorted_source = get_sign_check_content_v1(params);
     let is_passed: Result<bool, std::io::Error> = sign.verify(
         &sorted_source.unwrap_or_default(),
-        &base64::encode(signature),
+        &signature,
     );
     return is_passed;
 }
