@@ -46,11 +46,11 @@ pub fn handle_pay_callback(query_string: &String) {
             if pass {
                 warn!("verify success, data: {},", pass);
             } else {
-                warn!("verify not pass, cb_sign:{},params:{:?}", cb_sign, params);
+                warn!("verify not pass, callback sign:{},params:{:?}", cb_sign, params);
             }
         }
         Err(e) => {
-            error!("verify facing error, {}, cb sign: {}", e, cb_sign);
+            error!("verify facing error, {}, callback sign: {}", e, cb_sign);
         }
     }
 }
