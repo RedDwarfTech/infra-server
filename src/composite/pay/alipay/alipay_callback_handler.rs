@@ -10,7 +10,7 @@ use crate::{
     },
 };
 use diesel::Connection;
-use log::{error, warn};
+use log::error;
 use rust_wheel::{
     alipay::api::internal::util::alipay_signature::rsa_check_v1,
     model::enums::{rd_pay_status::RdPayStatus, rd_pay_type::RdPayType},
@@ -21,10 +21,6 @@ use rust_wheel::{
 ///
 pub fn handle_pay_callback(query_string: &String) {
     let mut params: HashMap<String, String> = parse_query(query_string);
-    warn!(
-        "params: {}",
-        serde_json::to_string(&params).unwrap_or_default()
-    );
     // verify signature
     // 第一步：在通知返回参数列表中，除去 sign、sign_type 两个参数外，凡是通知返回回来的参数皆是待验签的参数。
     // 第二步：将剩下参数进行 url_decode，然后进行字典排序，组成字符串，得到待签名字符串
