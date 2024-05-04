@@ -72,17 +72,19 @@ fn verify_callback(
         &nake_decode,
         &signature,
     );
+    _legacy_verify(appmap,params);
     return is_passed;
 }
 
 fn _legacy_verify(appmap: &AppMap, params: &mut HashMap<String, String>) {
-    let verify_result = rsa_check_v1(params, appmap.app_public_key.clone());
+    let verify_result = rsa_check_v1(params, appmap.alipay_public_key.clone());
     match verify_result {
         Ok(_data) => {
-            process_callback(params);
+            // process_callback(params);
+            error!("legacy success")
         }
         Err(err) => {
-            error!("verify failed, params: {:?}, err:{:?}", params, err);
+            error!("legacy verify failed, params: {:?}, err:{:?}", params, err);
             return;
         }
     }
