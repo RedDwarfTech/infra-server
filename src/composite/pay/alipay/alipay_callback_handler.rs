@@ -44,7 +44,7 @@ pub fn handle_pay_callback(query_string: &String) {
     match verify_result {
         Ok(pass) => {
             if pass {
-                warn!("verify success, data: {},", pass);
+                warn!("verify pass, data: {},", pass);
             } else {
                 warn!("verify not pass, callback sign:{},params:{:?}", cb_sign, params);
             }
