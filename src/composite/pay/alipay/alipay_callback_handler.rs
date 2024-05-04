@@ -13,7 +13,7 @@ use actix_web::cookie::time::util::is_leap_year;
 use base64::decode;
 use diesel::Connection;
 use log::{error, warn};
-use rust_wheel::alipay::api::internal::util::sign::Signer;
+use rust_wheel::alipay::api::internal::util::sign::{format_pem_public_key, load_public_key, Signer};
 use rust_wheel::{
     alipay::api::internal::util::{
         alipay_signature::{get_sign_check_content_v1, rsa_check_v1},
@@ -54,6 +54,7 @@ pub fn handle_pay_callback(query_string: &String) {
             error!("verify facing error, {}, callback sign: {}", e, cb_sign);
         }
     }
+    _legacy_verify(&appmap,&mut params);
 }
 
 fn verify_callback(
@@ -72,12 +73,14 @@ fn verify_callback(
         &nake_decode,
         &signature,
     );
-    _legacy_verify(appmap,params);
+    
     return is_passed;
 }
 
 fn _legacy_verify(appmap: &AppMap, params: &mut HashMap<String, String>) {
-    let verify_result = rsa_check_v1(params, appmap.alipay_public_key.clone());
+    // load the der format public key
+    let der_public_key = format_pem_public_key(&appmap.alipay_public_key.clone());
+    let verify_result = rsa_check_v1(params, der_public_key);
     match verify_result {
         Ok(_data) => {
             // process_callback(params);
