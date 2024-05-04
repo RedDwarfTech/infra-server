@@ -63,7 +63,7 @@ fn verify_callback(
 ) -> Result<bool, std::io::Error> {
     let mut sign = builder().sign_type_rsa2().build();
     sign.set_private_key(&appmap.app_private_key_pkcs1)?;
-    sign.set_public_key(&appmap.app_public_key_pkcs1)?;
+    sign.set_public_key(&appmap.alipay_public_key)?;
     let sorted_source = get_sign_check_content_v1(params);
     let naked_sorted_source = sorted_source.unwrap_or_default();
     let decoded_source = urlencoding::decode(&naked_sorted_source);
