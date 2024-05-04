@@ -1,6 +1,7 @@
 use crate::composite::pay::alipay::alipay_callback_handler::handle_pay_callback;
 use actix_web::{post, web, HttpResponse, Responder};
 use labrador::{serde_urlencoded::to_string, AlipayNotifyResponse};
+use log::error;
 
 /// Recieve notifycation
 ///
@@ -26,6 +27,7 @@ use labrador::{serde_urlencoded::to_string, AlipayNotifyResponse};
 #[post("/v1/alipaySeverNotification")]
 pub async fn alipay_server_notify(form: web::Form<AlipayNotifyResponse>) -> impl Responder {
     let query_string = to_string(&form.0).unwrap();
+    error!("query string: {}", query_string);
     handle_pay_callback(&query_string);
     return HttpResponse::Ok().body("failed");
 }
