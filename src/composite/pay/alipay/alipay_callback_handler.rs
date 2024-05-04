@@ -10,6 +10,7 @@ use crate::{
     },
 };
 use actix_web::cookie::time::util::is_leap_year;
+use base64::decode;
 use diesel::Connection;
 use log::{error, warn};
 use rust_wheel::alipay::api::internal::util::sign::Signer;
@@ -64,8 +65,11 @@ fn verify_callback(
     sign.set_private_key(&appmap.app_private_key_pkcs1)?;
     sign.set_public_key(&appmap.app_public_key_pkcs1)?;
     let sorted_source = get_sign_check_content_v1(params);
+    let naked_sorted_source = sorted_source.unwrap_or_default();
+    let decoded_source = urlencoding::decode(&naked_sorted_source);
+    let nake_decode = decoded_source.unwrap_or_default().into_owned();
     let is_passed: Result<bool, std::io::Error> = sign.verify(
-        &sorted_source.unwrap_or_default(),
+        &nake_decode,
         &signature,
     );
     return is_passed;
