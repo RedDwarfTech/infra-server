@@ -46,7 +46,7 @@ pub fn handle_pay_callback(query_string: &String) {
             if pass {
                 warn!("verify pass, data: {},", pass);
             } else {
-                warn!("verify not pass, callback sign:{},params:{:?}", cb_sign, params);
+                warn!("verify not pass, callback sign:{},params:{:?}", urlencoding::decode(cb_sign).unwrap_or_default().into_owned(), params);
             }
         }
         Err(e) => {
