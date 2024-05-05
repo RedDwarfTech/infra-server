@@ -81,7 +81,7 @@ fn verify_callback(
     warn!("pass to verify source: {},decoded sign: {}", decoded_str, dec_sign);
     let is_passed: Result<bool, std::io::Error> = sign.verify(
         &decoded_str,
-        &signature,
+        &dec_sign,
     );
     
     return is_passed;
