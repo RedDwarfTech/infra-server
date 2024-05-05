@@ -38,7 +38,7 @@ utoipa-rapidoc = { version = "3.0.0", features = ["actix-web"] }
 lazy_static = "1.4.0"
 # https://github.com/diesel-rs/diesel/issues/1879
 bigdecimal = {version = "0.4", features = ["serde"]}
-labrador = {version ="0.2.3", features = ["alipay"]}
+labrador = {git = "https://github.com/jiangxiaoqiang/labrador.git", features = ["alipay"]}
 rustflake = "0.1.1"
 serde_qs = "0.13"
 base64 = "0.13.0"
