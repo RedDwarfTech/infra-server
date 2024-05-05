@@ -12,6 +12,7 @@ use crate::{
 use actix_web::cookie::time::util::is_leap_year;
 use base64::decode;
 use diesel::Connection;
+use form_urlencoded::Parse;
 use log::{error, warn};
 use rust_wheel::alipay::api::internal::util::sign::{format_pem_public_key, load_public_key, Signer};
 use rust_wheel::{
@@ -41,7 +42,9 @@ pub fn handle_pay_callback(query_string: &String) {
     let cb_app_id = params.get("app_id").unwrap();
     let cb_sign = params.get("sign").unwrap();
     let appmap = query_app_map_by_third_app_id(cb_app_id, RdPayType::Alipay as i32);
-    let verify_result = verify_callback(&appmap, &mut params.clone(), cb_sign);
+    let base64_sign_wrap = urlencoding::decode(cb_sign);
+    let base64_sign = base64_sign_wrap.unwrap_or_default().into_owned();
+    let verify_result = verify_callback(&appmap, &mut params.clone(), &base64_sign);
     match verify_result {
         Ok(pass) => {
             if pass {
@@ -67,10 +70,16 @@ fn verify_callback(
     sign.set_public_key(&appmap.alipay_public_key)?;
     let sorted_source = get_sign_check_content_v1(params);
     let naked_sorted_source = sorted_source.unwrap_or_default();
-    let decoded_source = urlencoding::decode(&naked_sorted_source);
-    let nake_decode = decoded_source.unwrap_or_default().into_owned();
+    let decoded_pairs = form_urlencoded::parse(&naked_sorted_source.as_bytes());
+    let mut decoded_str = String::new();
+    for (key, value) in decoded_pairs {
+        decoded_str.push_str(&format!("{}={}&", key, value));
+    }
+    // 去除最后一个 "&"
+    decoded_str.pop();
+    warn!("pass to verify source: {}, sign: {}", decoded_str, signature);
     let is_passed: Result<bool, std::io::Error> = sign.verify(
-        &nake_decode,
+        &decoded_str,
         &signature,
     );
     
