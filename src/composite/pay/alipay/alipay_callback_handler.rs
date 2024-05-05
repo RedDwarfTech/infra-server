@@ -156,6 +156,7 @@ fn verify_invalid_callback(params: &mut HashMap<String, String>) -> bool {
     let cb_order_id = params.get("out_trade_no").unwrap();
     let total_amount = params.get("total_amount").unwrap();
     let cb_seller_id = params.get("seller_id").unwrap();
+    let cb_app_id = params.get("app_id").unwrap();
     // 商家需要验证该通知数据中的 out_trade_no 是否为商家系统中创建的订单号
     let db_order = query_order_by_out_trans_no(cb_order_id);
     // 判断 total_amount 是否确实为该订单的实际金额（即商家订单创建时的金额）
@@ -165,6 +166,9 @@ fn verify_invalid_callback(params: &mut HashMap<String, String>) -> bool {
     // 校验通知中的 seller_id（或者 seller_email）是否为 out_trade_no 
     // 这笔单据的对应的操作方（有的时候，一个商家可能有多个 seller_id/seller_email）
     if db_order.seller_id != cb_seller_id.to_owned() {
+        return false;
+    }
+    if db_order.third_app_id != cb_app_id.to_owned() {
         return false;
     }
     return true;
