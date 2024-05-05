@@ -76,7 +76,9 @@ fn verify_callback(
     }
     // 去除最后一个 "&"
     decoded_str.pop();
-    warn!("pass to verify source: {}, sign: {}", decoded_str, signature);
+    let b_dec = urlencoding::decode(signature);
+    let dec_sign = b_dec.unwrap_or_default().into_owned();
+    warn!("pass to verify source: {},decoded sign: {}", decoded_str, dec_sign);
     let is_passed: Result<bool, std::io::Error> = sign.verify(
         &decoded_str,
         &signature,
