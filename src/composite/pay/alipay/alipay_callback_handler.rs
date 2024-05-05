@@ -68,6 +68,7 @@ fn verify_callback(
     sign.set_public_key(&appmap.alipay_public_key)?;
     let sorted_source = get_sign_check_content_v1(params);
     let naked_sorted_source = sorted_source.unwrap_or_default();
+    warn!("naked_sorted_source: {}", naked_sorted_source);
     let decoded_pairs = form_urlencoded::parse(&naked_sorted_source.as_bytes());
     let mut decoded_str = String::new();
     for (key, value) in decoded_pairs {
