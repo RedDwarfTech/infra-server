@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::service::order::order_service::query_order_by_out_trans_no;
 use crate::{
     common::db::database::get_conn,
     composite::user::user_product_sub_handler::product_pay_success,
@@ -19,7 +20,6 @@ use rust_wheel::{
     },
     model::enums::{rd_pay_status::RdPayStatus, rd_pay_type::RdPayType},
 };
-use crate::service::order::order_service::query_order_by_out_trans_no;
 
 ///
 /// https://opendocs.alipay.com/open/270/105902?pathHash=d5cd617e
@@ -152,6 +152,9 @@ fn process_callback(params: &mut HashMap<String, String>) {
     }
 }
 
+///
+/// https://opendocs.alipay.com/open/270/105902?pathHash=d5cd617e
+///
 fn verify_invalid_callback(params: &mut HashMap<String, String>) -> bool {
     let cb_order_id = params.get("out_trade_no").unwrap();
     let total_amount = params.get("total_amount").unwrap();
@@ -161,14 +164,29 @@ fn verify_invalid_callback(params: &mut HashMap<String, String>) -> bool {
     let db_order = query_order_by_out_trans_no(cb_order_id);
     // 判断 total_amount 是否确实为该订单的实际金额（即商家订单创建时的金额）
     if db_order.total_price.to_string() != total_amount.to_owned() {
+        warn!(
+            "the order price did not match, db:{}, total amount:{}",
+            db_order.total_price,
+            total_amount.to_owned()
+        );
         return false;
     }
-    // 校验通知中的 seller_id（或者 seller_email）是否为 out_trade_no 
+    // 校验通知中的 seller_id（或者 seller_email）是否为 out_trade_no
     // 这笔单据的对应的操作方（有的时候，一个商家可能有多个 seller_id/seller_email）
     if db_order.seller_id != cb_seller_id.to_owned() {
+        warn!(
+            "seller id did not match, db:{},cb:{}",
+            db_order.seller_id, cb_seller_id
+        );
         return false;
     }
+    // 验证 app_id 是否为该商家本身
     if db_order.third_app_id != cb_app_id.to_owned() {
+        warn!(
+            "app id not match, db:{},cb:{}",
+            db_order.third_app_id,
+            cb_app_id.to_owned()
+        );
         return false;
     }
     return true;
