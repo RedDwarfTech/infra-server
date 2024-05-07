@@ -22,6 +22,7 @@ use rust_wheel::model::user::web_jwt_payload::WebJwtPayload;
 use sha256::digest;
 use uuid::Uuid;
 use crate::model::req::user::login::login_req::LoginReq;
+use crate::model::req::user::reg::reg_req::RegReq;
 
 /// User login
 ///
@@ -150,10 +151,27 @@ pub async fn change_passowrd(login_user_info: LoginUserInfo) -> impl Responder {
     return box_actix_rest_response(cur_user);
 }
 
+/// Register user
+///
+/// Register user
+#[utoipa::path(
+    context_path = "/infra/user/reg-user",
+    path = "/",
+    responses(
+        (status = 200, description = "Register user")
+    )
+)]
+#[post("/reg")]
+pub async fn reg_user(form: actix_web_validator::Json<RegReq>) -> impl Responder {
+    let app = query_cached_app(&form.0.app_id);
+    return box_actix_rest_response("ok");
+}
+
 pub fn config(conf: &mut web::ServiceConfig) {
     let scope = web::scope("/infra/user")
         .service(login)
         .service(change_passowrd)
+        .service(reg_user)
         .service(current_user);
     conf.service(scope);
 }
