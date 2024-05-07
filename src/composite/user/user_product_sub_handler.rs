@@ -9,7 +9,9 @@ use rust_wheel::{
 };
 
 use crate::{
-    model::diesel::dolphin::custom_dolphin_models::{IapProduct, UserSub},
+    model::diesel::{
+        custom::user::user_sub_add::UserSubAdd, dolphin::custom_dolphin_models::IapProduct,
+    },
     service::{
         app::app_service::query_cached_app,
         goods::goods_service::query_goods_by_id,
@@ -57,7 +59,7 @@ pub fn handle_non_subscribe(
     connection: &mut PgConnection,
 ) {
     warn!("start handle non subscribe");
-    let mut u_sub = UserSub::default();
+    let mut u_sub = UserSubAdd::default();
     u_sub.app_id = iap.app_id.clone();
     u_sub.iap_product_id = iap.id;
     u_sub.user_id = uid;
@@ -78,7 +80,6 @@ pub fn handle_non_subscribe(
             + 1;
         u_sub.sub_start_time = max_sub_end_time;
         u_sub.sub_start = Utc.timestamp_opt(max_sub_end_time, 0).unwrap()
-
     }
     let sub_end_time = get_sub_time(iap, &u_sub.sub_start_time);
     u_sub.sub_end = Utc.timestamp_opt(sub_end_time, 0).unwrap();

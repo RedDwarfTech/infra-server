@@ -1,4 +1,5 @@
 use crate::diesel::prelude::*;
+use crate::model::diesel::custom::user::user_sub_add::UserSubAdd;
 use crate::{
     common::db::database::get_conn, model::diesel::dolphin::custom_dolphin_models::UserSub,
 };
@@ -26,7 +27,7 @@ pub fn query_user_sub_by_product_id(pid: &i32, uid: &i64) -> Vec<UserSub> {
     return db_user;
 }
 
-pub fn insert_user_sub(user_sub: &UserSub, connection: &mut PgConnection) -> UserSub {
+pub fn insert_user_sub(user_sub: &UserSubAdd, connection: &mut PgConnection) -> UserSub {
     use crate::model::diesel::dolphin::dolphin_schema::user_sub as user_sub_table;
     let result = diesel::insert_into(user_sub_table::dsl::user_sub)
         .values(user_sub)
