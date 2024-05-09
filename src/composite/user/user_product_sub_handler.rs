@@ -58,7 +58,6 @@ pub fn handle_non_subscribe(
     out_trans_no: &String,
     connection: &mut PgConnection,
 ) {
-    warn!("start handle non subscribe");
     let mut u_sub = UserSubAdd::default();
     u_sub.app_id = iap.app_id.clone();
     u_sub.iap_product_id = iap.id;

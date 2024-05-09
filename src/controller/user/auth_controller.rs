@@ -91,6 +91,9 @@ pub async fn verify_access_token(req: HttpRequest) -> impl Responder {
         }
     }
     let access_token = get_auth_token_from_traefik(&req);
+    if access_token.is_empty() {
+        return HttpResponse::Unauthorized().finish();
+    }
     let valid = verify_jwt_token(&access_token.as_str());
     match valid {
         JwtTokenError::Valid => {
