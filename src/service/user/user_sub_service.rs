@@ -4,6 +4,7 @@ use crate::{
     common::db::database::get_conn, model::diesel::dolphin::custom_dolphin_models::UserSub,
 };
 use diesel::ExpressionMethods;
+use rust_wheel::common::util::time_util::get_current_millisecond;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub fn query_user_sub_by_product_id(pid: &i32, uid: &i64) -> Vec<UserSub> {
@@ -43,5 +44,20 @@ pub fn query_user_sub_by_order_id(out_trans_no: &String) -> Vec<UserSub> {
         .filter(&predicate)
         .load::<UserSub>(&mut get_conn())
         .expect("query user by order id failed");
+    return db_user;
+}
+
+pub fn get_user_sub_expire_time(uid: &i64, pid: &i32) -> UserSub {
+    use crate::model::diesel::dolphin::dolphin_schema::user_sub as user_sub_table;
+    let predicate = user_sub_table::user_id
+        .eq(uid)
+        .and(user_sub_table::enabled.eq(1))
+        .and(user_sub_table::sub_end_time.gt(get_current_millisecond()))
+        .and(user_sub_table::product_id.eq(pid));
+    let db_user = user_sub_table::table
+        .filter(&predicate)
+        .order_by(&user_sub_table::sub_end_time.desc())
+        .first::<UserSub>(&mut get_conn())
+        .expect("query user by product id failed");
     return db_user;
 }
