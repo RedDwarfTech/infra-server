@@ -7,7 +7,7 @@ use crate::{
     },
     service::{
         app::app_service::query_cached_app,
-        oauth::oauth_service::{query_refresh_token, update_refresh_token_exp_time},
+        oauth::oauth_service::{query_refresh_token, update_refresh_token_exp_time}, user::user_sub_service::get_user_sub_expire_time,
     },
     HASHMAP,
 };
@@ -57,12 +57,13 @@ pub async fn refresh_access_token(
         .duration_since(UNIX_EPOCH)
         .expect("SystemTime before UNIX EPOCH!");
     let exp_timestamp = exp.as_secs() as usize;
+    let vip_exp_time = get_user_sub_expire_time(&db_refresh_token.user_id, &app.product_id);
     let rd_user = WebJwtPayload {
         userId: db_refresh_token.user_id.clone(),
         deviceId: db_refresh_token.device_id.clone(),
         appId: app.app_id,
         lt: 1,
-        et: 0,
+        et: vip_exp_time.sub_end_time,
         pid: app.product_id,
         exp: exp_timestamp,
     };
