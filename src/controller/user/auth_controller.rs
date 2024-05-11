@@ -13,11 +13,10 @@ use crate::{
     HASHMAP,
 };
 use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
+use jsonwebtoken::errors::ErrorKind;
 use log::error;
 use rust_wheel::{
-    common::{
-        error::jwt_token_error::JwtTokenError, wrapper::actix_http_resp::{box_actix_rest_response, box_error_actix_rest_response},
-    },
+    common::wrapper::actix_http_resp::{box_actix_rest_response, box_error_actix_rest_response},
     model::user::{
         jwt_auth::{
             create_access_token, get_auth_token_from_traefik, get_forward_url_path,
@@ -97,15 +96,15 @@ pub async fn verify_access_token(req: HttpRequest) -> impl Responder {
         return HttpResponse::Unauthorized().finish();
     }
     let valid = verify_jwt_token(&access_token.as_str());
-    match valid {
-        JwtTokenError::Valid => {
-            return box_actix_rest_response("ok");
-        }
-        JwtTokenError::Invalid => {
+    if valid.is_none() {
+        return box_actix_rest_response("ok");
+    }
+    match valid.unwrap() {
+        ErrorKind::InvalidToken => {
             error!("Invalid access token, token:{}", access_token);
             return HttpResponse::Unauthorized().finish();
         }
-        JwtTokenError::Expired => {
+        ErrorKind::ExpiredSignature => {
             error!(
                 "access token expired, forward url: {:?}, token:{}",
                 forward_url, access_token
@@ -116,11 +115,7 @@ pub async fn verify_access_token(req: HttpRequest) -> impl Responder {
                 "Access Token已过期".to_owned(),
             );
         }
-        JwtTokenError::OtherError => {
-            error!(
-                "other issue, forward url:{:?}, token:{}",
-                forward_url, access_token
-            );
+        _ => {
             return HttpResponse::Unauthorized().finish();
         }
     }
