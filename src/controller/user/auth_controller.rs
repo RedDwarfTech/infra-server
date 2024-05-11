@@ -7,7 +7,8 @@ use crate::{
     },
     service::{
         app::app_service::query_cached_app,
-        oauth::oauth_service::{query_refresh_token, update_refresh_token_exp_time}, user::user_sub_service::get_user_sub_expire_time,
+        oauth::oauth_service::{query_refresh_token, update_refresh_token_exp_time},
+        user::user_sub_service::get_user_sub_expire_time,
     },
     HASHMAP,
 };
@@ -105,11 +106,17 @@ pub async fn verify_access_token(req: HttpRequest) -> impl Responder {
             return HttpResponse::Unauthorized().finish();
         }
         JwtTokenError::Expired => {
-            error!("access token expired, token:{}", access_token);
+            error!(
+                "access token expired, forward url: {:?}, token:{}",
+                forward_url, access_token
+            );
             return HttpResponse::Unauthorized().finish();
         }
         JwtTokenError::OtherError => {
-            error!("other issue, token:{}", access_token);
+            error!(
+                "other issue, forward url:{:?}, token:{}",
+                forward_url, access_token
+            );
             return HttpResponse::Unauthorized().finish();
         }
     }
