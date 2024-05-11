@@ -16,7 +16,7 @@ use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
 use log::error;
 use rust_wheel::{
     common::{
-        error::jwt_token_error::JwtTokenError, wrapper::actix_http_resp::box_actix_rest_response,
+        error::jwt_token_error::JwtTokenError, wrapper::actix_http_resp::{box_actix_rest_response, box_error_actix_rest_response},
     },
     model::user::{
         jwt_auth::{
@@ -110,7 +110,11 @@ pub async fn verify_access_token(req: HttpRequest) -> impl Responder {
                 "access token expired, forward url: {:?}, token:{}",
                 forward_url, access_token
             );
-            return HttpResponse::Unauthorized().finish();
+            return box_error_actix_rest_response(
+                "ACCESS_TOKEN_EXPIRED",
+                "00100100004016".to_owned(),
+                "Access Token已过期".to_owned(),
+            );
         }
         JwtTokenError::OtherError => {
             error!(

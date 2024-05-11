@@ -6,7 +6,7 @@ infra-server错误码定义如下：
 | 0030010002     | 登录错误次数过多  | LOGIN_FAILED_TOO_MUCH |
 | 0030010003     | token验证失败 |                       |
 |                |           |                       |
-| 00100100004016 |           | ACCESS_TOKEN_EXPIRED  |
+| 00100100004016 | Access Token已过期  | ACCESS_TOKEN_EXPIRED  |
 | 00100100004014 |           | ACCESS_TOKEN_INVALID  |
 |                |           | VERIFY_TOKEN_ERROR    |
 |                |           |                       |
