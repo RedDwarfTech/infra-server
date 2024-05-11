@@ -1,4 +1,4 @@
-use rust_wheel::model::enums::rd_deleted_status::RdDeletedStatus;
+use rust_wheel::model::enums::common::rd_deleted_status::RdDeletedStatus;
 use rust_wheel::model::enums::rd_online_status::RdOnlineStatus;
 
 use crate::common::db::database::get_conn;
