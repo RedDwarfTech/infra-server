@@ -16,7 +16,7 @@ use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
 use jsonwebtoken::errors::ErrorKind;
 use log::error;
 use rust_wheel::{
-    common::wrapper::actix_http_resp::{box_actix_rest_response, box_error_actix_rest_response},
+    common::wrapper::actix_http_resp::box_actix_rest_response,
     model::user::{
         jwt_auth::{
             create_access_token, get_auth_token_from_traefik, get_forward_url_path,
@@ -75,7 +75,13 @@ pub async fn refresh_access_token(
 
 /// Verify access token
 ///
-/// Verify access token
+/// https://stackoverflow.com/questions/8855297/token-expired-json-rest-api-error-code
+/// according to the spec rfc6750 - "The OAuth 2.0 Authorization Framework: 
+/// Bearer Token Usage", https://www.rfc-editor.org/rfc/rfc6750, p.8, section 3.1, 
+/// resource server should return 401: invalid_token The access token provided is expired, revoked, malformed, 
+/// or invalid for other reasons. The resource SHOULD respond with the HTTP 401 (Unauthorized) status code. 
+/// The client MAY request a new access token and retry the protected resource request.
+///
 #[utoipa::path(
     context_path = "/infra/auth/access_token",
     path = "/",
@@ -109,11 +115,7 @@ pub async fn verify_access_token(req: HttpRequest) -> impl Responder {
                 "access token expired, forward url: {:?}, token:{}",
                 forward_url, access_token
             );
-            return box_error_actix_rest_response(
-                "ACCESS_TOKEN_EXPIRED",
-                "00100100004016".to_owned(),
-                "Access Token已过期".to_owned(),
-            );
+            return HttpResponse::Unauthorized().finish();
         }
         _ => {
             return HttpResponse::Unauthorized().finish();
