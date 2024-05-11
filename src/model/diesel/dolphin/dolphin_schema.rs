@@ -129,6 +129,7 @@ diesel::table! {
         product_code -> Varchar,
         order_id -> Varchar,
         seller_id -> Varchar,
+        deleted -> Int2,
     }
 }
 

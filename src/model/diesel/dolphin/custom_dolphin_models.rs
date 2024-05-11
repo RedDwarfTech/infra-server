@@ -135,6 +135,7 @@ pub struct Order {
     pub product_code: String,
     pub order_id: String,
     pub seller_id: String,
+    pub deleted: i16
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
