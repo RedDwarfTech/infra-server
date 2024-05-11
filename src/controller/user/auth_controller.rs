@@ -63,7 +63,11 @@ pub async fn refresh_access_token(
         deviceId: db_refresh_token.device_id.clone(),
         appId: app.app_id,
         lt: 1,
-        et: vip_exp_time.sub_end_time,
+        et: if vip_exp_time.is_some() {
+            vip_exp_time.unwrap().sub_end_time
+        } else {
+            0
+        },
         pid: app.product_id,
         exp: exp_timestamp,
     };
@@ -76,10 +80,10 @@ pub async fn refresh_access_token(
 /// Verify access token
 ///
 /// https://stackoverflow.com/questions/8855297/token-expired-json-rest-api-error-code
-/// according to the spec rfc6750 - "The OAuth 2.0 Authorization Framework: 
-/// Bearer Token Usage", https://www.rfc-editor.org/rfc/rfc6750, p.8, section 3.1, 
-/// resource server should return 401: invalid_token The access token provided is expired, revoked, malformed, 
-/// or invalid for other reasons. The resource SHOULD respond with the HTTP 401 (Unauthorized) status code. 
+/// according to the spec rfc6750 - "The OAuth 2.0 Authorization Framework:
+/// Bearer Token Usage", https://www.rfc-editor.org/rfc/rfc6750, p.8, section 3.1,
+/// resource server should return 401: invalid_token The access token provided is expired, revoked, malformed,
+/// or invalid for other reasons. The resource SHOULD respond with the HTTP 401 (Unauthorized) status code.
 /// The client MAY request a new access token and retry the protected resource request.
 ///
 #[utoipa::path(

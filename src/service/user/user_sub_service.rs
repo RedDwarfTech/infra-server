@@ -47,7 +47,7 @@ pub fn query_user_sub_by_order_id(out_trans_no: &String) -> Vec<UserSub> {
     return db_user;
 }
 
-pub fn get_user_sub_expire_time(uid: &i64, pid: &i32) -> UserSub {
+pub fn get_user_sub_expire_time(uid: &i64, pid: &i32) -> Option<UserSub> {
     use crate::model::diesel::dolphin::dolphin_schema::user_sub as user_sub_table;
     let predicate = user_sub_table::user_id
         .eq(uid)
@@ -57,7 +57,6 @@ pub fn get_user_sub_expire_time(uid: &i64, pid: &i32) -> UserSub {
     let db_user = user_sub_table::table
         .filter(&predicate)
         .order_by(&user_sub_table::sub_end_time.desc())
-        .first::<UserSub>(&mut get_conn())
-        .expect("query user by product id failed");
-    return db_user;
+        .first::<UserSub>(&mut get_conn());
+    return db_user.ok();
 }
