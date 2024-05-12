@@ -13,7 +13,7 @@ use crate::{
 use diesel::Connection;
 use log::{error, warn};
 use rust_wheel::alipay::api::internal::util::alipay_signature::rd_rsa_check_v1;
-use rust_wheel::alipay::api::internal::util::sign::{format_pem_public_key, Signer};
+use rust_wheel::alipay::api::internal::util::sign::Signer;
 use rust_wheel::{
     alipay::api::internal::util::{alipay_signature::get_sign_check_content_v1, sign::builder},
     model::enums::{rd_pay_status::RdPayStatus, rd_pay_type::RdPayType},
@@ -42,7 +42,6 @@ pub fn handle_pay_callback(query_string: &String) {
     match verify_result {
         Ok(pass) => {
             if pass {
-                warn!("verify pass, data: {},", pass);
                 process_callback(&mut params);
             } else {
                 error!(
@@ -108,16 +107,18 @@ fn verify_callback(
 }
 
 fn _legacy_verify(appmap: &AppMap, decoded_str: &String, decoded_sign: &String) {
-    // load the der format public key
-    let der_public_key = format_pem_public_key(&appmap.alipay_public_key.clone());
-    let verify_result = rd_rsa_check_v1(decoded_str, decoded_sign, der_public_key);
+    let verify_result =
+        rd_rsa_check_v1(decoded_str, decoded_sign, appmap.alipay_public_key.clone());
     match verify_result {
         Ok(_data) => {
             // process_callback(params);
             error!("legacy success")
         }
         Err(err) => {
-            error!("legacy verify failed, decoded_str: {:?}, err:{:?}", decoded_str, err);
+            error!(
+                "legacy verify failed, decoded_str: {:?}, err:{:?}",
+                decoded_str, err
+            );
             return;
         }
     }
