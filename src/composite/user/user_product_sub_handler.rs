@@ -69,7 +69,7 @@ pub fn handle_non_subscribe(
         let start = get_current_millisecond();
         //u_sub.sub_start = Local:;
         u_sub.sub_start_time = start;
-        u_sub.sub_start = Utc.timestamp_opt(start, 0).unwrap()
+        u_sub.sub_start = Utc.timestamp_opt(start / 1000, 0).unwrap()
     } else {
         let max_sub_end_time = user_subs
             .iter()
@@ -78,10 +78,10 @@ pub fn handle_non_subscribe(
             .unwrap_or_default()
             + 1;
         u_sub.sub_start_time = max_sub_end_time;
-        u_sub.sub_start = Utc.timestamp_opt(max_sub_end_time, 0).unwrap()
+        u_sub.sub_start = Utc.timestamp_opt(max_sub_end_time / 1000, 0).unwrap()
     }
     let sub_end_time = get_sub_time(iap, &u_sub.sub_start_time);
-    u_sub.sub_end = Utc.timestamp_opt(sub_end_time, 0).unwrap();
+    u_sub.sub_end = Utc.timestamp_opt(sub_end_time / 1000, 0).unwrap();
     u_sub.sub_end_time = sub_end_time;
     let u_subs = query_user_sub_by_order_id(&out_trans_no);
     if u_subs.len() == 0 {
