@@ -8,7 +8,8 @@ pub struct OrderPageResp {
     pub orderId: String,
     pub orderStatus: i32,
     pub totalPrice: BigDecimal,
-    pub createdTime: i64
+    pub createdTime: i64,
+    pub subject: String,
 }
 
 impl From<&Order> for OrderPageResp {
@@ -17,7 +18,8 @@ impl From<&Order> for OrderPageResp {
             orderId: order.order_id.clone(),
             orderStatus: order.order_status,
             totalPrice: order.total_price.clone(),
-            createdTime: order.created_time,   
+            createdTime: order.created_time, 
+            subject: order.subject.clone(),  
         }
     }
 }
