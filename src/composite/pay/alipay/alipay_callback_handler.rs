@@ -12,12 +12,10 @@ use crate::{
 };
 use diesel::Connection;
 use log::{error, warn};
+use rust_wheel::alipay::api::internal::util::alipay_signature::rd_rsa_check_v1;
 use rust_wheel::alipay::api::internal::util::sign::{format_pem_public_key, Signer};
 use rust_wheel::{
-    alipay::api::internal::util::{
-        alipay_signature::{get_sign_check_content_v1, rsa_check_v1},
-        sign::builder,
-    },
+    alipay::api::internal::util::{alipay_signature::get_sign_check_content_v1, sign::builder},
     model::enums::{rd_pay_status::RdPayStatus, rd_pay_type::RdPayType},
 };
 
@@ -38,7 +36,7 @@ pub fn handle_pay_callback(query_string: &String) {
     // 4. 验证 app_id 是否为该商家本身。
     let cb_app_id = params.get("app_id").unwrap();
     let cb_sign = params.get("sign").unwrap();
-    
+
     let appmap = query_app_map_by_third_app_id(cb_app_id, RdPayType::Alipay as i32);
     let verify_result = verify_callback(&appmap, &mut params.clone(), &cb_sign);
     match verify_result {
@@ -60,7 +58,6 @@ pub fn handle_pay_callback(query_string: &String) {
             error!("verify facing error, {}, callback sign: {}", e, cb_sign);
         }
     }
-    _legacy_verify(&appmap, &mut params);
 }
 
 /** 验证回调，确保是由合法的调用方发起
@@ -106,20 +103,21 @@ fn verify_callback(
     let base64_dec = urlencoding::decode(signature);
     let decoded_sign = base64_dec.unwrap_or_default().into_owned();
     let is_passed: Result<bool, std::io::Error> = sign.verify(&decoded_str, &decoded_sign);
+    _legacy_verify(&appmap, &decoded_str, &decoded_sign);
     return is_passed;
 }
 
-fn _legacy_verify(appmap: &AppMap, params: &mut HashMap<String, String>) {
+fn _legacy_verify(appmap: &AppMap, decoded_str: &String, decoded_sign: &String) {
     // load the der format public key
     let der_public_key = format_pem_public_key(&appmap.alipay_public_key.clone());
-    let verify_result = rsa_check_v1(params, der_public_key);
+    let verify_result = rd_rsa_check_v1(decoded_str, decoded_sign, der_public_key);
     match verify_result {
         Ok(_data) => {
             // process_callback(params);
             error!("legacy success")
         }
         Err(err) => {
-            error!("legacy verify failed, params: {:?}, err:{:?}", params, err);
+            error!("legacy verify failed, decoded_str: {:?}, err:{:?}", decoded_str, err);
             return;
         }
     }
