@@ -1,5 +1,5 @@
 use rust_wheel::common::query::pagination::Paginate;
-use rust_wheel::common::util::model_convert::map_pagination_res;
+use rust_wheel::common::util::model_convert::{map_entity, map_pagination_from_list};
 use rust_wheel::model::enums::common::rd_deleted_status::RdDeletedStatus;
 use rust_wheel::model::response::pagination_response::PaginationResponse;
 use rust_wheel::model::user::login_user_info::LoginUserInfo;
@@ -10,6 +10,7 @@ use crate::model::diesel::custom::order::order_add::OrderAdd;
 use crate::model::diesel::custom::order::order_item_add::OrderItemAdd;
 use crate::model::diesel::dolphin::custom_dolphin_models::Order;
 use crate::model::req::order::user_order_query_params::UserOrderQueryParams;
+use crate::model::resp::order::order_page_resp::OrderPageResp;
 use crate::service::order::order_item_service::create_order_item;
 
 pub fn create_new_order(
@@ -73,7 +74,7 @@ pub fn update_order_status(oid: &i64, o_status: i32, connection: &mut PgConnecti
 pub fn get_user_order_page(
     params: &UserOrderQueryParams,
     login_user_info: &LoginUserInfo,
-) -> PaginationResponse<Vec<Order>> {
+) -> PaginationResponse<Vec<OrderPageResp>> {
     use crate::model::diesel::dolphin::dolphin_schema::orders as orders_table;
     let mut query = orders_table::table.into_boxed::<diesel::pg::Pg>();
     query = query.filter(orders_table::deleted.eq(RdDeletedStatus::Normal as i16));
@@ -83,10 +84,12 @@ pub fn get_user_order_page(
         .per_page(params.page_size.unwrap_or(9).clone());
     let page_result: QueryResult<(Vec<Order>, i64, i64)> =
         query.load_and_count_pages_total::<Order>(&mut get_conn());
-    let page_map_result = map_pagination_res(
-        page_result,
+    let order_respes: Vec<OrderPageResp> = map_entity(page_result.as_ref().unwrap().0.clone());
+    let page_map_result = map_pagination_from_list(
+        order_respes,
         params.page_num.unwrap_or(1),
         params.page_size.unwrap_or(10),
+        page_result.as_ref().unwrap().2,
     );
     return page_map_result;
 }
