@@ -2,6 +2,7 @@ use chrono::{TimeZone, Utc};
 use diesel::PgConnection;
 use rust_wheel::{
     common::util::time_util::get_current_millisecond,
+    config::cache::redis_util::del_redis_key,
     model::enums::{
         order::rd_order_status::RdOrderStatus,
         pay::{apple_pay_product_type::ApplePayProductType, pay_peroid_type::PayPeroidType},
@@ -9,6 +10,7 @@ use rust_wheel::{
 };
 
 use crate::{
+    common::cache::user_cache::get_user_cached_key,
     model::diesel::{
         custom::user::user_sub_add::UserSubAdd, dolphin::custom_dolphin_models::IapProduct,
     },
@@ -83,8 +85,15 @@ pub fn handle_non_subscribe(
     let u_subs = query_user_sub_by_order_id(&out_trans_no);
     if u_subs.len() == 0 {
         insert_user_sub(&u_sub, connection);
-        let _app = query_cached_app(&iap.app_id);
-        warn!("insert user sub")
+        let app = query_cached_app(&iap.app_id);
+        let user_cached_key = get_user_cached_key(&app.app_id, &uid);
+        let del_resp = del_redis_key(&user_cached_key);
+        if let Err(err) = del_resp {
+            error!(
+                "delete redis key failed: {}, cache key: {}",
+                err, user_cached_key
+            );
+        }
     }
 }
 
