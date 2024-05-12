@@ -60,6 +60,7 @@ pub fn get_user_sub_expire_time(uid: &i64, pid: &i32) -> Option<UserSub> {
         .and(user_sub_table::sub_end_time.gt(get_current_millisecond()))
         .and(user_sub_table::product_id.eq(pid));
     let db_user = user_sub_table::table
+        .order_by(user_sub_table::sub_end_time.desc())
         .filter(&predicate)
         .order_by(&user_sub_table::sub_end_time.desc())
         .first::<UserSub>(&mut get_conn());
