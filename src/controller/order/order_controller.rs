@@ -41,7 +41,7 @@ pub async fn get_order_status(
 #[get("/page")]
 pub async fn get_user_orders_page(
     login_user_info: LoginUserInfo,
-    params: web::Form<UserOrderQueryParams>,
+    params: web::Query<UserOrderQueryParams>,
 ) -> impl Responder {
     let db_order = get_user_order_page(&params.0, &login_user_info);
     return box_actix_rest_response(db_order);
