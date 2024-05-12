@@ -23,7 +23,10 @@ pub fn query_app_map_by_third_app_id(t_app_id: &String, pay_type: i32) -> AppMap
     let predicate = app_map_table::third_app_id
         .eq(t_app_id)
         .and(app_map_table::third_channel.eq(pay_type));
-    let err_msg = format!("{}{}", "query app map by third app failed, id: ", t_app_id);
+    let err_msg = format!(
+        "query app map by third app failed, id:{},pay type:{}",
+        t_app_id, pay_type
+    );
     let app_map_result = app_map_table::table
         .filter(&predicate)
         .first::<AppMap>(&mut get_conn())
