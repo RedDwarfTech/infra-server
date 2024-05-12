@@ -30,10 +30,14 @@ pub fn query_user_sub_by_product_id(pid: &i32, uid: &i64) -> Vec<UserSub> {
 
 pub fn insert_user_sub(user_sub: &UserSubAdd, connection: &mut PgConnection) -> UserSub {
     use crate::model::diesel::dolphin::dolphin_schema::user_sub as user_sub_table;
+    let msg = format!(
+        "failed to add user sub,start: {}, end: {}",
+        user_sub.sub_start, user_sub.sub_end
+    );
     let result = diesel::insert_into(user_sub_table::dsl::user_sub)
         .values(user_sub)
         .get_result::<UserSub>(connection)
-        .expect("failed to add user sub");
+        .expect(&msg);
     return result;
 }
 
