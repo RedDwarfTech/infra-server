@@ -76,7 +76,7 @@ pub fn do_user_reg(req: &RegReq, app: &App) -> HttpResponse {
     reg_u.first_login_time = Some(get_current_millisecond());
     reg_u.app_id = app.app_id.clone();
     reg_u.product_id = app.product_id;
-    reg_u.country_code = Some(req.country_code.clone());
+    reg_u.country_code = req.country_code.clone();
     add_user(&reg_u);
     return box_actix_rest_response("ok");
 }
