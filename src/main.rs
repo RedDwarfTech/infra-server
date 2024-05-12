@@ -1,15 +1,16 @@
 #[macro_use]
 extern crate diesel;
 
-mod swagger_docs;
-mod types;
+pub mod common;
+pub mod composite;
 pub mod controller;
 pub mod model;
 pub mod service;
-pub mod common;
-pub mod composite;
+mod swagger_docs;
+mod types;
 
 use crate::controller::user::user_controller;
+use crate::swagger_docs::ApiDoc;
 use actix_web::App;
 use actix_web::HttpServer;
 use controller::goods::goods_controller;
@@ -18,19 +19,22 @@ use controller::order::order_controller;
 use controller::pay::alipay::alipay_controller;
 use controller::pay::alipay::alipay_notify_controller;
 use controller::user::auth_controller;
+use lazy_static::lazy_static;
 use rust_wheel::config::app::app_conf_reader::get_app_config;
-use utoipa_swagger_ui::SwaggerUi;
-use crate::swagger_docs::ApiDoc;
+use std::collections::HashMap;
 use utoipa::OpenApi;
 use utoipa_rapidoc::RapiDoc;
-use lazy_static::lazy_static;
-use std::collections::HashMap;
+use utoipa_swagger_ui::SwaggerUi;
 
 lazy_static! {
     static ref HASHMAP: HashMap<&'static str, &'static str> = {
         let mut m = HashMap::new();
-        m.insert("/infra/alipay/notification/v1/alipaySeverNotification", "foo");
-        m.insert("/infra/auth/access-token/refresh","foo");
+        m.insert(
+            "/infra/alipay/notification/v1/alipaySeverNotification",
+            "foo",
+        );
+        m.insert("/infra/auth/access-token/refresh", "foo");
+        m.insert("/infra/user/reg", "foo");
         m
     };
 }
