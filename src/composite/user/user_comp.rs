@@ -1,12 +1,27 @@
 use crate::{
     common::cache::user_cache::get_user_cached_key,
-    model::{diesel::{custom::user::user_add::UserAdd, dolphin::custom_dolphin_models::{App, User}}, req::user::reg::reg_req::RegReq},
-    service::{app::app_service::query_cached_app, user::user_service::{add_user, query_user_by_id, query_user_by_product_id}},
+    model::{
+        diesel::{custom::user::user_add::UserAdd, dolphin::custom_dolphin_models::App},
+        req::user::reg::reg_req::RegReq,
+    },
+    service::{
+        app::app_service::query_cached_app,
+        user::user_service::{add_user, query_user_by_id, query_user_by_product_id},
+    },
 };
-use rust_wheel::{
-    common::util::time_util::get_current_millisecond, config::cache::redis_util::sync_get_str, model::user::{login_user_info::LoginUserInfo, rd_user_info::RdUserInfo}
-};
+use actix_web::HttpResponse;
 use regex::bytes::Regex;
+use rust_wheel::{
+    common::{
+        util::{
+            security_util::get_sha, str_util::generate_random_string,
+            time_util::get_current_millisecond,
+        },
+        wrapper::actix_http_resp::{box_actix_rest_response, box_error_actix_rest_response},
+    },
+    config::cache::redis_util::sync_get_str,
+    model::user::{login_user_info::LoginUserInfo, rd_user_info::RdUserInfo},
+};
 
 pub fn comp_current_user(login_user_info: &LoginUserInfo) -> RdUserInfo {
     let app: App = query_cached_app(&login_user_info.appId);
@@ -34,16 +49,15 @@ pub fn get_cached_user(login_user_info: &LoginUserInfo, app: &App) -> RdUserInfo
     return rd_user;
 }
 
-
-pub fn do_user_reg(req: &RegReq, app: &App){
+pub fn do_user_reg(req: &RegReq, app: &App) -> HttpResponse {
     if !is_valid_password(&req.password) {
         return box_error_actix_rest_response(
             "PWD_NOT_MATCH_COMPLAEX_GUIDE",
             "0030010006".to_owned(),
             "密码不够安全".to_owned(),
         );
-    } 
-    let exists_user = query_user_by_product_id(&req.phone,&app.product_id);
+    }
+    let exists_user = query_user_by_product_id(&req.phone, &app.product_id);
     if exists_user.is_some() {
         return box_error_actix_rest_response(
             "USER_ALREADY_REG",
@@ -54,16 +68,17 @@ pub fn do_user_reg(req: &RegReq, app: &App){
     let mut reg_u = UserAdd::default();
     reg_u.phone = req.phone.clone();
     let pwd_salt = generate_random_string(16);
-    let salted_pwd = get_sha(req.password,pwd_salt);
+    let salted_pwd = get_sha(req.password.clone(), &pwd_salt);
     reg_u.salt = pwd_salt;
-    reg_u.password = salted_pwd;
-    reg_u.nickname = format!("{}_{}",u, generate_random_string(6));
+    reg_u.pwd = salted_pwd;
+    reg_u.nickname = format!("u_{}", generate_random_string(6));
     reg_u.register_time = get_current_millisecond();
     reg_u.first_login_time = Some(get_current_millisecond());
     reg_u.app_id = app.app_id.clone();
     reg_u.product_id = app.product_id;
-    reg_u.country_code = Some(req.country_code);
+    reg_u.country_code = Some(req.country_code.clone());
     add_user(&reg_u);
+    return box_actix_rest_response("ok");
 }
 
 fn is_valid_password(password: &str) -> bool {
