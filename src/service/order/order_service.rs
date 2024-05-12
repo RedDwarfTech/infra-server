@@ -80,15 +80,15 @@ pub fn get_user_order_page(
     query = query.filter(orders_table::deleted.eq(RdDeletedStatus::Normal as i16));
     query = query.filter(orders_table::user_id.eq(login_user_info.userId));
     let query = query
-        .paginate(params.page_num.unwrap_or(1).clone())
-        .per_page(params.page_size.unwrap_or(9).clone());
+        .paginate(params.pageNum.unwrap_or(1).clone())
+        .per_page(params.pageSize.unwrap_or(9).clone());
     let page_result: QueryResult<(Vec<Order>, i64, i64)> =
         query.load_and_count_pages_total::<Order>(&mut get_conn());
     let order_respes: Vec<OrderPageResp> = map_entity(page_result.as_ref().unwrap().0.clone());
     let page_map_result = map_pagination_from_list(
         order_respes,
-        params.page_num.unwrap_or(1),
-        params.page_size.unwrap_or(10),
+        params.pageNum.unwrap_or(1),
+        params.pageSize.unwrap_or(10),
         page_result.as_ref().unwrap().2,
     );
     return page_map_result;

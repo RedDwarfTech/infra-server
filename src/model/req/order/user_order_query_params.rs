@@ -1,7 +1,6 @@
 #[derive(serde::Deserialize)]
+#[allow(non_snake_case)]
 pub struct UserOrderQueryParams {
-    pub name: Option<String>,
-    pub tpl_type: Option<i32>,
-    pub page_num: Option<i64>,
-    pub page_size: Option<i64>,
+    pub pageNum: Option<i64>,
+    pub pageSize: Option<i64>,
 }
