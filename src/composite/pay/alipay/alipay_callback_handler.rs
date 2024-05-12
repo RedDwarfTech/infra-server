@@ -102,7 +102,6 @@ fn verify_callback(
     let base64_dec = urlencoding::decode(signature);
     let decoded_sign = base64_dec.unwrap_or_default().into_owned();
     let is_passed: Result<bool, std::io::Error> = sign.verify(&decoded_str, &decoded_sign);
-    _legacy_verify(&appmap, &decoded_str, &decoded_sign);
     return is_passed;
 }
 
