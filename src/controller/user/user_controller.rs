@@ -1,9 +1,9 @@
-use std::time::{SystemTime, UNIX_EPOCH};
-
 use crate::common::cache::user_cache::store_login_user;
-use crate::composite::user::user_comp::{do_user_reg, get_cached_user};
+use crate::composite::user::user_comp::{do_user_reg, get_cached_user, get_jwt_payload};
 use crate::model::diesel::custom::oauth::oauth_add::OauthAdd;
 use crate::model::diesel::dolphin::custom_dolphin_models::User;
+use crate::model::req::user::login::login_req::LoginReq;
+use crate::model::req::user::reg::reg_req::RegReq;
 use crate::service::app::app_service::{query_app_by_app_id, query_cached_app};
 use crate::service::oauth::oauth_service::insert_refresh_token;
 use crate::service::user::user_service::query_user_by_product_id;
@@ -18,11 +18,8 @@ use rust_wheel::config::cache::redis_util::{incre_redis_key, set_str, sync_get_s
 use rust_wheel::model::response::user::login_response::LoginResponse;
 use rust_wheel::model::user::jwt_auth::create_access_token;
 use rust_wheel::model::user::login_user_info::LoginUserInfo;
-use rust_wheel::model::user::web_jwt_payload::WebJwtPayload;
 use sha256::digest;
 use uuid::Uuid;
-use crate::model::req::user::login::login_req::LoginReq;
-use crate::model::req::user::reg::reg_req::RegReq;
 
 /// User login
 ///
@@ -48,7 +45,8 @@ pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder 
         );
     }
     let app_info = query_app_by_app_id(&form.0.app_id);
-    let single_user_opt: Option<User> = query_user_by_product_id(&form.0.phone, &app_info.product_id);
+    let single_user_opt: Option<User> =
+        query_user_by_product_id(&form.0.phone, &app_info.product_id);
     if single_user_opt.is_none() {
         return box_error_actix_rest_response(
             "USER_NAME_OR_PWD_INCORRECT",
@@ -60,25 +58,14 @@ pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder 
     let pwd_salt = single_user.salt.clone();
     let sha_password = get_sha(String::from(&form.password), &pwd_salt);
     if sha_password.eq(&single_user.pwd.as_str()) {
-        let now = SystemTime::now();
-        // 过期时间为当前时间加上 1 小时
-        let exp = now
-            .checked_add(std::time::Duration::new(7200, 0))
-            .expect("Unable to calculate expiration time")
-            .duration_since(UNIX_EPOCH)
-            .expect("SystemTime before UNIX EPOCH!");
-        let exp_timestamp = exp.as_secs() as usize;
-        let rd_user = WebJwtPayload {
-            userId: single_user.id.clone(),
-            deviceId: form.0.device_id.clone(),
-            appId: form.0.app_id.clone(),
-            lt: 1,
-            et: 0,
-            pid: app_info.product_id,
-            exp: exp_timestamp,
-        };
+        let payload = get_jwt_payload(
+            &single_user.id,
+            &form.0.device_id,
+            &form.0.app_id,
+            &single_user.product_id,
+        );
         let uuid = Uuid::new_v4();
-        let access_token = create_access_token(&rd_user);
+        let access_token = create_access_token(&payload);
         let login_resp: LoginResponse = LoginResponse {
             registerTime: single_user.register_time.clone(),
             refreshToken: uuid.to_string(),
@@ -95,7 +82,7 @@ pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder 
             device_id: form.0.device_id.clone(),
             app_id: form.0.app_id,
         };
-        store_login_user(&rd_user, &single_user, &app_info);
+        store_login_user(&payload, &single_user, &app_info);
         insert_refresh_token(&oauth);
         return box_actix_rest_response(login_resp);
     } else {

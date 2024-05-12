@@ -1,6 +1,5 @@
-use std::time::{SystemTime, UNIX_EPOCH};
-
 use crate::{
+    composite::user::user_comp::get_jwt_payload,
     model::{
         req::user::auth::access_token_refresh_req::AccessTokenRefreshReq,
         resp::auth::auth_resp::AuthResp,
@@ -8,7 +7,6 @@ use crate::{
     service::{
         app::app_service::query_cached_app,
         oauth::oauth_service::{query_refresh_token, update_refresh_token_exp_time},
-        user::user_sub_service::get_user_sub_expire_time,
     },
     HASHMAP,
 };
@@ -17,12 +15,8 @@ use jsonwebtoken::errors::ErrorKind;
 use log::error;
 use rust_wheel::{
     common::wrapper::actix_http_resp::box_actix_rest_response,
-    model::user::{
-        jwt_auth::{
-            create_access_token, get_auth_token_from_traefik, get_forward_url_path,
-            verify_jwt_token,
-        },
-        web_jwt_payload::WebJwtPayload,
+    model::user::jwt_auth::{
+        create_access_token, get_auth_token_from_traefik, get_forward_url_path, verify_jwt_token,
     },
 };
 use sha256::digest;
@@ -49,29 +43,13 @@ pub async fn refresh_access_token(
     let val = digest(input);
     let db_refresh_token = query_refresh_token(&val);
     let app = query_cached_app(&db_refresh_token.app_id);
-    let now = SystemTime::now();
-    // the expire time is 1 hour
-    let exp = now
-        .checked_add(std::time::Duration::new(7200, 0))
-        .expect("Unable to calculate expiration time")
-        .duration_since(UNIX_EPOCH)
-        .expect("SystemTime before UNIX EPOCH!");
-    let exp_timestamp = exp.as_secs() as usize;
-    let vip_exp_time = get_user_sub_expire_time(&db_refresh_token.user_id, &app.product_id);
-    let rd_user = WebJwtPayload {
-        userId: db_refresh_token.user_id.clone(),
-        deviceId: db_refresh_token.device_id.clone(),
-        appId: app.app_id,
-        lt: 1,
-        et: if vip_exp_time.is_some() {
-            vip_exp_time.unwrap().sub_end_time
-        } else {
-            0
-        },
-        pid: app.product_id,
-        exp: exp_timestamp,
-    };
-    let access_token = create_access_token(&rd_user);
+    let payload = get_jwt_payload(
+        &db_refresh_token.user_id.clone(),
+        &db_refresh_token.device_id.clone(),
+        &app.app_id,
+        &app.product_id,
+    );
+    let access_token = create_access_token(&payload);
     update_refresh_token_exp_time(&db_refresh_token);
     let resp = AuthResp::from(access_token);
     return box_actix_rest_response(resp);

@@ -1,3 +1,5 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use crate::{
     common::cache::user_cache::get_user_cached_key,
     model::{
@@ -6,7 +8,7 @@ use crate::{
     },
     service::{
         app::app_service::query_cached_app,
-        user::user_service::{add_user, query_user_by_id, query_user_by_product_id},
+        user::{user_service::{add_user, query_user_by_id, query_user_by_product_id}, user_sub_service::get_user_sub_expire_time},
     },
 };
 use actix_web::HttpResponse;
@@ -20,7 +22,7 @@ use rust_wheel::{
         wrapper::actix_http_resp::{box_actix_rest_response, box_error_actix_rest_response},
     },
     config::cache::redis_util::sync_get_str,
-    model::user::{login_user_info::LoginUserInfo, rd_user_info::RdUserInfo},
+    model::user::{login_user_info::LoginUserInfo, rd_user_info::RdUserInfo, web_jwt_payload::WebJwtPayload},
 };
 
 pub fn comp_current_user(login_user_info: &LoginUserInfo) -> RdUserInfo {
@@ -89,4 +91,25 @@ fn is_valid_password(password: &str) -> bool {
     // 正则表达式：密码必须包含大写、小写、数字和特殊字符，且长度是8-32位
     let re = Regex::new(r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()-+=]).{8,32}$").unwrap();
     re.is_match(password).expect(&format!("regex match error,{}",password))
+}
+
+pub fn get_jwt_payload(uid: &i64, did: &String, aid: &String, pid: &i32) -> WebJwtPayload {
+    let u_sub = get_user_sub_expire_time(uid,pid);
+    let now = SystemTime::now();
+    let exp = now
+            .checked_add(std::time::Duration::new(7200, 0))
+            .expect("Unable to calculate expiration time")
+            .duration_since(UNIX_EPOCH)
+            .expect("SystemTime before UNIX EPOCH!");
+        let exp_timestamp = exp.as_secs() as usize;
+    let jwt_payload = WebJwtPayload {
+        userId: uid.to_owned(),
+        deviceId: did.to_owned(),
+        appId: aid.to_owned(),
+        lt: 1,
+        et: if u_sub.is_some() { u_sub.unwrap().sub_end_time } else { 0},
+        pid: pid.to_owned(),
+        exp: exp_timestamp,
+    };
+    jwt_payload
 }
