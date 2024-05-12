@@ -138,11 +138,16 @@ pub fn prepare_pay(login_user_info: &LoginUserInfo, iap: &IapProduct) -> OrderRe
     let result: Result<Option<OrderResp>, diesel::result::Error> = connection.transaction(|conn| {
         let local_app_map = app_map.clone();
         let pay_result: Option<OrderResp> = do_alipay(&biz_content, &local_app_map, iap);
-        if pay_result.is_some() {
-            create_new_order(&order_add, conn, &order_item);
-            return Ok(Some(pay_result.unwrap()));
+        if pay_result.is_none() {
+            error!("pay result is null: {:?}", pay_result);
+            return Ok(None);
         }
-        Ok(None)
+        let new_order = create_new_order(&order_add, conn, &order_item);
+        if new_order.is_none() {
+            error!("create null order: {:?}", new_order);
+            return Ok(None);
+        }
+        return Ok(pay_result);
     });
     if let Err(e) = result.as_ref() {
         error!("create order failed, {}", e)

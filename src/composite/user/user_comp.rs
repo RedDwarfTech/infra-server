@@ -54,7 +54,7 @@ pub fn do_user_reg(req: &RegReq, app: &App) -> HttpResponse {
         return box_error_actix_rest_response(
             "PWD_NOT_MATCH_COMPLAEX_GUIDE",
             "0030010006".to_owned(),
-            "密码不够安全".to_owned(),
+            "密码不够安全,密码必须包含大写、小写、数字和特殊字符，且长度是8-32位".to_owned(),
         );
     }
     let exists_user = query_user_by_product_id(&req.phone, &app.product_id);
@@ -86,7 +86,7 @@ pub fn do_user_reg(req: &RegReq, app: &App) -> HttpResponse {
 /// https://github.com/rust-lang/regex/discussions/910
 /// 
 fn is_valid_password(password: &str) -> bool {
-    // 正则表达式：密码必须包含大写、小写、数字和特殊字符，且长度是6-32位
-    let re = Regex::new(r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()-+=]).{6,32}$").unwrap();
+    // 正则表达式：密码必须包含大写、小写、数字和特殊字符，且长度是8-32位
+    let re = Regex::new(r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()-+=]).{8,32}$").unwrap();
     re.is_match(password).expect(&format!("regex match error,{}",password))
 }
