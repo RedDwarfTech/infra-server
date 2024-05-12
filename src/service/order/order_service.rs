@@ -76,7 +76,9 @@ pub fn get_user_order_page(
     login_user_info: &LoginUserInfo,
 ) -> PaginationResponse<Vec<OrderPageResp>> {
     use crate::model::diesel::dolphin::dolphin_schema::orders as orders_table;
-    let mut query = orders_table::table.into_boxed::<diesel::pg::Pg>();
+    let mut query = orders_table::table
+    .order_by(orders_table::created_time.desc())
+    .into_boxed::<diesel::pg::Pg>();
     query = query.filter(orders_table::deleted.eq(RdDeletedStatus::Normal as i16));
     query = query.filter(orders_table::user_id.eq(login_user_info.userId));
     let query = query

@@ -8,7 +8,7 @@ serde = { version = "1.0.64", features = ["derive"] }
 serde_json = "1.0.64"
 actix-web = "4"
 actix-web-validator = "5.0.1"
-rust_wheel = { version = "0.1.3", features = [
+rust_wheel = { version = "0.1.4", features = [
     "model",
     "common",
     "rwconfig",
@@ -50,3 +50,4 @@ base64 = "0.13.0"
 urlencoding = "2.1.3"
 form_urlencoded = "1.2.1"
 jsonwebtoken = "8.3.0"
+regex = "1.5"
