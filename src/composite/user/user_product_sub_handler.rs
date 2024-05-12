@@ -62,6 +62,7 @@ pub fn handle_non_subscribe(
     u_sub.app_id = iap.app_id.clone();
     u_sub.iap_product_id = iap.id;
     u_sub.user_id = uid;
+    u_sub.enabled = 1;
     u_sub.order_id = out_trans_no.clone();
     let user_subs = query_user_sub_by_product_id(&iap.product_id, &uid);
     if user_subs.len() == 0 {
