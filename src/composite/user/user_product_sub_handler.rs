@@ -20,7 +20,7 @@ use crate::{
             order_service::{query_order_by_out_trans_no, update_order_status},
         },
         user::user_sub_service::{
-            insert_user_sub, query_user_sub_by_order_id, query_user_sub_by_product_id,
+            insert_user_sub, query_newest_user_sub_by_product_id, query_user_sub_by_order_id,
         },
     },
 };
@@ -63,20 +63,16 @@ pub fn handle_non_subscribe(
     u_sub.iap_product_id = iap.id;
     u_sub.user_id = uid;
     u_sub.order_id = out_trans_no.clone();
-    let user_subs = query_user_sub_by_product_id(&iap.product_id, &uid);
-    if user_subs.len() == 0 {
+    let user_subs = query_newest_user_sub_by_product_id(&iap.product_id, &uid);
+    if user_subs.is_none() {
+        warn!("new sub, pid:{},uid:{}", iap.product_id, &uid);
         // new subscribe
         let start = get_current_millisecond();
         //u_sub.sub_start = Local:;
         u_sub.sub_start_time = start;
         u_sub.sub_start = Utc.timestamp_opt(start / 1000, 0).unwrap()
     } else {
-        let max_sub_end_time = user_subs
-            .iter()
-            .map(|entity| entity.sub_end_time)
-            .max()
-            .unwrap_or_default()
-            + 1;
+        let max_sub_end_time = user_subs.unwrap().sub_end_time + 1;
         u_sub.sub_start_time = max_sub_end_time;
         u_sub.sub_start = Utc.timestamp_opt(max_sub_end_time / 1000, 0).unwrap()
     }

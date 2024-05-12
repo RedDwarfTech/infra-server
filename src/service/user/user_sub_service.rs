@@ -7,7 +7,7 @@ use diesel::ExpressionMethods;
 use rust_wheel::common::util::time_util::get_current_millisecond;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub fn query_user_sub_by_product_id(pid: &i32, uid: &i64) -> Vec<UserSub> {
+pub fn query_newest_user_sub_by_product_id(pid: &i32, uid: &i64) -> Option<UserSub> {
     let now = SystemTime::now();
     let unix_timestamp: i64 = now.duration_since(UNIX_EPOCH)
         .expect("Time went backwards")
@@ -22,9 +22,10 @@ pub fn query_user_sub_by_product_id(pid: &i32, uid: &i64) -> Vec<UserSub> {
         .and(user_sub_table::user_id.eq(uid))
         .and(user_sub_table::enabled.eq(1));
     let db_user = user_sub_table::table
+        .order_by(user_sub_table::sub_end_time.desc())
         .filter(&predicate)
-        .load::<UserSub>(&mut get_conn())
-        .expect("query user by id failed");
+        .first::<UserSub>(&mut get_conn())
+        .ok();
     return db_user;
 }
 
