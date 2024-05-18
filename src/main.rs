@@ -18,6 +18,7 @@ use controller::monitor::health_controller;
 use controller::order::order_controller;
 use controller::pay::alipay::alipay_controller;
 use controller::pay::alipay::alipay_notify_controller;
+use controller::pay::paypal::paypal_controller;
 use controller::user::auth_controller;
 use lazy_static::lazy_static;
 use rust_wheel::config::app::app_conf_reader::get_app_config;
@@ -51,6 +52,7 @@ async fn main() -> std::io::Result<()> {
             .configure(auth_controller::config)
             .configure(goods_controller::config)
             .configure(alipay_controller::config)
+            .configure(paypal_controller::config)
             .configure(alipay_notify_controller::config)
             .configure(order_controller::config)
             .service(
