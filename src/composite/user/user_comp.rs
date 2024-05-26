@@ -36,6 +36,25 @@ pub fn comp_current_user(login_user_info: &LoginUserInfo) -> RdUserInfo {
     return current_u;
 }
 
+pub fn get_rd_user_by_id(uid: &i64) -> RdUserInfo {
+    let u_info = query_user_by_id(uid);
+    let u_sub = get_user_sub_expire_time(&u_info.id, &u_info.product_id);
+    let rd_user = RdUserInfo {
+        id: u_info.id,
+        nickname: u_info.nickname,
+        device_id: "".to_string(),
+        app_id: u_info.app_id,
+        avatar_url: u_info.avatar_url.unwrap_or_default(),
+        auto_renew_product_expire_time_ms: if u_sub.is_some() {
+            u_sub.unwrap().sub_end_time
+        } else {
+            0
+        },
+        app_name: "".to_string(),
+    };
+    return rd_user;
+}
+
 pub fn get_cached_user(login_user_info: &LoginUserInfo, app: &App) -> RdUserInfo {
     let user_cached_key = get_user_cached_key(&app.app_id, &login_user_info.userId);
     let cached_user_info = sync_get_str(&user_cached_key);

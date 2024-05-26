@@ -1,8 +1,11 @@
 use crate::common::cache::user_cache::store_login_user;
-use crate::composite::user::user_comp::{do_user_reg, get_cached_user, get_jwt_payload};
+use crate::composite::user::user_comp::{
+    do_user_reg, get_cached_user, get_jwt_payload, get_rd_user_by_id,
+};
 use crate::model::diesel::custom::oauth::oauth_add::OauthAdd;
 use crate::model::diesel::dolphin::custom_dolphin_models::User;
 use crate::model::req::user::login::login_req::LoginReq;
+use crate::model::req::user::query::user_query_params::UserQueryParams;
 use crate::model::req::user::reg::reg_req::RegReq;
 use crate::service::app::app_service::{query_app_by_app_id, query_cached_app};
 use crate::service::oauth::oauth_service::insert_refresh_token;
@@ -162,6 +165,22 @@ pub async fn reg_user(form: actix_web_validator::Json<RegReq>) -> impl Responder
     return do_user_reg(&form.0, &app);
 }
 
+/// Get user
+///
+/// Get user
+#[utoipa::path(
+    context_path = "/infra-inner/user/detail",
+    path = "/",
+    responses(
+        (status = 200, description = "get current user")
+    )
+)]
+#[get("/detail")]
+pub async fn get_inner_user(params: web::Query<UserQueryParams>) -> impl Responder {
+    let cur_user = get_rd_user_by_id(&params.0.id);
+    return box_actix_rest_response(cur_user);
+}
+
 pub fn config(conf: &mut web::ServiceConfig) {
     let scope = web::scope("/infra/user")
         .service(login)
@@ -169,4 +188,6 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(reg_user)
         .service(current_user);
     conf.service(scope);
+    let scope_inner = web::scope("/infra-inner/user").service(get_inner_user);
+    conf.service(scope_inner);
 }
