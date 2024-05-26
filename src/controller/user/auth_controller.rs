@@ -93,10 +93,6 @@ pub async fn verify_access_token(req: HttpRequest) -> impl Responder {
             return HttpResponse::Unauthorized().finish();
         }
         ErrorKind::ExpiredSignature => {
-            error!(
-                "access token expired, forward url: {:?}, token:{}",
-                forward_url, access_token
-            );
             return HttpResponse::Unauthorized().finish();
         }
         _ => {
