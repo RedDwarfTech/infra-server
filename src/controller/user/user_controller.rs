@@ -4,13 +4,14 @@ use crate::composite::user::user_comp::{
 };
 use crate::model::diesel::custom::oauth::oauth_add::OauthAdd;
 use crate::model::diesel::dolphin::custom_dolphin_models::User;
+use crate::model::req::user::edit::edit_user_params::EditUserParams;
 use crate::model::req::user::login::login_req::LoginReq;
 use crate::model::req::user::query::user_query_params::UserQueryParams;
 use crate::model::req::user::reg::reg_req::RegReq;
 use crate::service::app::app_service::{query_app_by_app_id, query_cached_app};
 use crate::service::oauth::oauth_service::insert_refresh_token;
-use crate::service::user::user_service::query_user_by_product_id;
-use actix_web::{get, post, put, web, Responder};
+use crate::service::user::user_service::{handle_update_nickname, query_user_by_product_id};
+use actix_web::{get, patch, post, put, web, Responder};
 use chrono::Local;
 use log::error;
 use rust_wheel::common::util::security_util::get_sha;
@@ -181,11 +182,32 @@ pub async fn get_inner_user(params: web::Query<UserQueryParams>) -> impl Respond
     return box_actix_rest_response(cur_user);
 }
 
+/// Update nickname
+///
+/// Update nickname
+#[utoipa::path(
+    context_path = "/infra-inner/user/nickname",
+    path = "/",
+    responses(
+        (status = 200, description = "change current user nickname")
+    )
+)]
+#[patch("/nickname")]
+pub async fn change_nickname(
+    params: actix_web_validator::Json<EditUserParams>,
+    login_user_info: LoginUserInfo,
+) -> impl Responder {
+    handle_update_nickname(&params, &login_user_info).await;
+    let rd_user = get_rd_user_by_id(&login_user_info.userId);
+    return box_actix_rest_response(rd_user);
+}
+
 pub fn config(conf: &mut web::ServiceConfig) {
     let scope = web::scope("/infra/user")
         .service(login)
         .service(change_passowrd)
         .service(reg_user)
+        .service(change_nickname)
         .service(current_user);
     conf.service(scope);
     let scope_inner = web::scope("/infra-inner/user").service(get_inner_user);
