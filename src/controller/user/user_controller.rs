@@ -1,6 +1,6 @@
 use crate::common::cache::user_cache::store_login_user;
 use crate::composite::user::user_comp::{
-    do_user_reg, get_cached_rd_user, get_cached_user, get_jwt_payload, get_rd_user_by_id
+    do_user_reg, get_cached_rd_user, get_cached_user, get_jwt_payload, get_rd_user_by_id,
 };
 use crate::model::diesel::custom::oauth::oauth_add::OauthAdd;
 use crate::model::diesel::dolphin::custom_dolphin_models::{App, User};
@@ -14,12 +14,14 @@ use crate::service::oauth::oauth_service::insert_refresh_token;
 use crate::service::user::user_service::{
     change_user_pwd, handle_update_nickname, query_user_by_product_id,
 };
-use actix_web::{get, patch, post, web, Responder};
+use actix_web::{get, patch, post, put, web, Responder};
 use chrono::Local;
 use log::error;
 use rust_wheel::common::util::security_util::get_sha;
-use rust_wheel::common::wrapper::actix_http_resp::{box_actix_rest_response, box_err_actix_rest_response};
 use rust_wheel::common::wrapper::actix_http_resp::box_error_actix_rest_response;
+use rust_wheel::common::wrapper::actix_http_resp::{
+    box_actix_rest_response, box_err_actix_rest_response,
+};
 use rust_wheel::config::app::app_conf_reader::get_app_config;
 use rust_wheel::config::cache::redis_util::{incre_redis_key, set_str, sync_get_str};
 use rust_wheel::model::error::infra_error::InfraError;
@@ -215,6 +217,36 @@ pub async fn change_nickname(
     login_user_info: LoginUserInfo,
 ) -> impl Responder {
     handle_update_nickname(&params, &login_user_info).await;
+    return box_actix_rest_response("ok");
+}
+
+/// Send verify code
+///
+/// Update nickname
+#[utoipa::path(
+    context_path = "/infra-inner/user/pwd/send-verify-code",
+    path = "/",
+    responses(
+        (status = 200, description = "change current user nickname")
+    )
+)]
+#[put("/pwd/send-verify-code")]
+pub async fn send_verify_code() -> impl Responder {
+    return box_actix_rest_response("ok");
+}
+
+/// Verify code
+///
+/// Update nickname
+#[utoipa::path(
+    context_path = "/infra-inner/user/pwd/send-verify-code",
+    path = "/",
+    responses(
+        (status = 200, description = "change current user nickname")
+    )
+)]
+#[put("/verify")]
+pub async fn verify_code() -> impl Responder {
     return box_actix_rest_response("ok");
 }
 
