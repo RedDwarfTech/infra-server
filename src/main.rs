@@ -36,6 +36,7 @@ lazy_static! {
         );
         m.insert("/infra/auth/access-token/refresh", "foo");
         m.insert("/infra/user/reg", "foo");
+        m.insert("/infra/user/pwd/send-verify-code", "foo");
         m
     };
 }
