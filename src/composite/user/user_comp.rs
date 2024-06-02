@@ -1,9 +1,9 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::{
-    common::cache::user_cache::get_user_cached_key,
+    common::cache::user_cache::{get_rd_user_cached_key, get_user_cached_key},
     model::{
-        diesel::{custom::user::user_add::UserAdd, dolphin::custom_dolphin_models::App},
+        diesel::{custom::user::user_add::UserAdd, dolphin::custom_dolphin_models::{App, User}},
         req::user::reg::reg_req::RegReq,
     },
     service::{
@@ -32,7 +32,7 @@ use rust_wheel::{
 
 pub fn comp_current_user(login_user_info: &LoginUserInfo) -> RdUserInfo {
     let app: App = query_cached_app(&login_user_info.appId);
-    let current_u = get_cached_user(login_user_info, &app);
+    let current_u = get_cached_rd_user(login_user_info, &app);
     return current_u;
 }
 
@@ -55,8 +55,19 @@ pub fn get_rd_user_by_id(uid: &i64) -> RdUserInfo {
     return rd_user;
 }
 
-pub fn get_cached_user(login_user_info: &LoginUserInfo, app: &App) -> RdUserInfo {
+pub fn get_cached_user(login_user_info: &LoginUserInfo, app: &App) -> User {
     let user_cached_key = get_user_cached_key(&app.app_id, &login_user_info.userId);
+    let cached_user_info = sync_get_str(&user_cached_key);
+    if cached_user_info.is_some() {
+        let u_model: User = serde_json::from_str(&cached_user_info.unwrap()).unwrap();
+        return u_model;
+    }
+    let u_info = query_user_by_id(&login_user_info.userId);    
+    return u_info;
+}
+
+pub fn get_cached_rd_user(login_user_info: &LoginUserInfo, app: &App) -> RdUserInfo {
+    let user_cached_key = get_rd_user_cached_key(&app.app_id, &login_user_info.userId);
     let cached_user_info = sync_get_str(&user_cached_key);
     if cached_user_info.is_some() {
         let u_model: RdUserInfo = serde_json::from_str(&cached_user_info.unwrap()).unwrap();

@@ -10,7 +10,7 @@ use rust_wheel::{
 };
 
 use crate::{
-    common::cache::user_cache::get_user_cached_key,
+    common::cache::user_cache::get_rd_user_cached_key,
     model::diesel::{
         custom::user::user_sub_add::UserSubAdd, dolphin::custom_dolphin_models::IapProduct,
     },
@@ -86,7 +86,7 @@ pub fn handle_non_subscribe(
     if u_subs.len() == 0 {
         insert_user_sub(&u_sub, connection);
         let app = query_cached_app(&iap.app_id);
-        let user_cached_key = get_user_cached_key(&app.app_id, &uid);
+        let user_cached_key = get_rd_user_cached_key(&app.app_id, &uid);
         let del_resp = del_redis_key(&user_cached_key);
         if let Err(err) = del_resp {
             error!(
