@@ -11,7 +11,7 @@ use crate::model::req::user::reg::reg_req::RegReq;
 use crate::service::app::app_service::{query_app_by_app_id, query_cached_app};
 use crate::service::oauth::oauth_service::insert_refresh_token;
 use crate::service::user::user_service::{handle_update_nickname, query_user_by_product_id};
-use actix_web::{get, patch, post, put, web, Responder};
+use actix_web::{get, patch, post, web, Responder};
 use chrono::Local;
 use log::error;
 use rust_wheel::common::util::security_util::get_sha;
@@ -143,7 +143,7 @@ pub async fn current_user(login_user_info: LoginUserInfo) -> impl Responder {
         (status = 200, description = "change password")
     )
 )]
-#[put("/pwd")]
+#[patch("/change/pwd")]
 pub async fn change_passowrd(login_user_info: LoginUserInfo) -> impl Responder {
     let app = query_cached_app(&login_user_info.appId);
     let cur_user = get_cached_user(&login_user_info, &app);
@@ -198,8 +198,7 @@ pub async fn change_nickname(
     login_user_info: LoginUserInfo,
 ) -> impl Responder {
     handle_update_nickname(&params, &login_user_info).await;
-    let rd_user = get_rd_user_by_id(&login_user_info.userId);
-    return box_actix_rest_response(rd_user);
+    return box_actix_rest_response("ok");
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {
