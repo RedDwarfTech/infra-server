@@ -18,10 +18,11 @@ use actix_web::{get, patch, post, web, Responder};
 use chrono::Local;
 use log::error;
 use rust_wheel::common::util::security_util::get_sha;
-use rust_wheel::common::wrapper::actix_http_resp::box_actix_rest_response;
+use rust_wheel::common::wrapper::actix_http_resp::{box_actix_rest_response, box_err_actix_rest_response};
 use rust_wheel::common::wrapper::actix_http_resp::box_error_actix_rest_response;
 use rust_wheel::config::app::app_conf_reader::get_app_config;
 use rust_wheel::config::cache::redis_util::{incre_redis_key, set_str, sync_get_str};
+use rust_wheel::model::error::infra_error::InfraError;
 use rust_wheel::model::response::user::login_response::LoginResponse;
 use rust_wheel::model::user::jwt_auth::create_access_token;
 use rust_wheel::model::user::login_user_info::LoginUserInfo;
@@ -151,6 +152,9 @@ pub async fn change_passowrd(
     req: actix_web_validator::Json<ChangePwdReq>,
     login_user_info: LoginUserInfo,
 ) -> impl Responder {
+    if req.old_password == req.new_password {
+        return box_err_actix_rest_response(InfraError::NewOldPwdDuplicate);
+    }
     let app: App = query_cached_app(&login_user_info.appId);
     let cur_user = get_cached_user(&login_user_info, &app);
     if app.app_id != cur_user.app_id {
