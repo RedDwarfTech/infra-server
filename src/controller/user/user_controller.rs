@@ -7,6 +7,7 @@ use crate::model::diesel::dolphin::custom_dolphin_models::{App, User};
 use crate::model::req::user::edit::change_pwd_req::ChangePwdReq;
 use crate::model::req::user::edit::edit_user_params::EditUserParams;
 use crate::model::req::user::login::login_req::LoginReq;
+use crate::model::req::user::pwd::reset_pwd_req::ResetPwdReq;
 use crate::model::req::user::query::user_query_params::UserQueryParams;
 use crate::model::req::user::reg::reg_req::RegReq;
 use crate::service::app::app_service::{query_app_by_app_id, query_cached_app};
@@ -250,6 +251,21 @@ pub async fn verify_code() -> impl Responder {
     return box_actix_rest_response("ok");
 }
 
+/// Verify code
+///
+/// Update nickname
+#[utoipa::path(
+    context_path = "/infra-inner/user/pwd/send-verify-code",
+    path = "/",
+    responses(
+        (status = 200, description = "change current user nickname")
+    )
+)]
+#[put("/pwd/reset")]
+pub async fn reset_pwd(_params: actix_web_validator::Json<ResetPwdReq>) -> impl Responder {
+    return box_actix_rest_response("ok");
+}
+
 pub fn config(conf: &mut web::ServiceConfig) {
     let scope = web::scope("/infra/user")
         .service(login)
@@ -258,6 +274,7 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(change_nickname)
         .service(send_verify_code)
         .service(verify_code)
+        .service(reset_pwd)
         .service(current_user);
     conf.service(scope);
     let scope_inner = web::scope("/infra-inner/user").service(get_inner_user);
