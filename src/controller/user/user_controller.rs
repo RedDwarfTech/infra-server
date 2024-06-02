@@ -256,6 +256,8 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(change_passowrd)
         .service(reg_user)
         .service(change_nickname)
+        .service(send_verify_code)
+        .service(verify_code)
         .service(current_user);
     conf.service(scope);
     let scope_inner = web::scope("/infra-inner/user").service(get_inner_user);
