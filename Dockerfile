@@ -1,5 +1,6 @@
 ARG BASE_IMAGE=dolphinjiang/rust-musl-builder:1.78.0
 FROM ${BASE_IMAGE} AS builder
+ADD --chown=rust:rust . ./
 WORKDIR /app
 COPY . /app
 RUN cargo build --release
