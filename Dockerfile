@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=dolphinjiang/rust-musl-builder:latest
+ARG BASE_IMAGE=dolphinjiang/rust-musl-builder:1.78.0
 FROM ${BASE_IMAGE} AS builder
 WORKDIR /app
 COPY . /app
