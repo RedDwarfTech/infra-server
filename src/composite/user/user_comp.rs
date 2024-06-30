@@ -22,12 +22,12 @@ use rust_wheel::{
             security_util::get_sha, str_util::generate_random_string,
             time_util::get_current_millisecond,
         },
-        wrapper::actix_http_resp::{box_actix_rest_response, box_error_actix_rest_response},
+        wrapper::actix_http_resp::{box_actix_rest_response, box_err_actix_rest_response, box_error_actix_rest_response},
     },
     config::cache::redis_util::sync_get_str,
-    model::user::{
+    model::{error::infra_error::InfraError, user::{
         login_user_info::LoginUserInfo, rd_user_info::RdUserInfo, web_jwt_payload::WebJwtPayload,
-    },
+    }},
 };
 
 pub fn comp_current_user(login_user_info: &LoginUserInfo) -> RdUserInfo {
@@ -93,11 +93,7 @@ pub fn get_cached_rd_user(login_user_info: &LoginUserInfo, app: &App) -> RdUserI
 
 pub fn do_user_reg(req: &RegReq, app: &App) -> HttpResponse {
     if !is_valid_password(&req.password) {
-        return box_error_actix_rest_response(
-            "PWD_NOT_MATCH_COMPLAEX_GUIDE",
-            "0030010006".to_owned(),
-            "密码不够安全,密码必须包含大写、小写、数字和特殊字符，且长度是8-32位".to_owned(),
-        );
+        return box_err_actix_rest_response(InfraError::PwdNitMatchComplexGuide);
     }
     let exists_user = query_user_by_product_id(&req.phone, &app.product_id);
     if exists_user.is_some() {
