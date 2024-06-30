@@ -2,7 +2,6 @@ ARG BASE_IMAGE=dolphinjiang/rust-musl-builder:latest
 FROM ${BASE_IMAGE} AS builder
 WORKDIR /app
 COPY . /app
-RUN rustup default stable
 RUN cargo build --release
 
 FROM alpine:3.18.2
