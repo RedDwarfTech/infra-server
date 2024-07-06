@@ -4,3 +4,4 @@ pub mod oauth;
 pub mod goods;
 pub mod order;
 pub mod pay;
+pub mod notify;

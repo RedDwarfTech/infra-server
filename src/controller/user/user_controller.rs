@@ -1,9 +1,12 @@
 use crate::common::cache::user_cache::store_login_user;
 use crate::composite::user::user_comp::{
-    do_user_reg, get_cached_rd_user, get_cached_user, get_jwt_payload, get_rd_user_by_id,
+    do_user_reg, get_cached_rd_user, get_cached_user, get_cached_user_by_phone, get_jwt_payload,
+    get_rd_user_by_id,
 };
 use crate::model::diesel::custom::oauth::oauth_add::OauthAdd;
 use crate::model::diesel::dolphin::custom_dolphin_models::{App, User};
+use crate::model::req::notify::sms::login_sms_verify_req::LoginSmsVerifyReq;
+use crate::model::req::notify::sms::sms_req::SmsReq;
 use crate::model::req::user::edit::change_pwd_req::ChangePwdReq;
 use crate::model::req::user::edit::edit_user_params::EditUserParams;
 use crate::model::req::user::login::login_req::LoginReq;
@@ -11,6 +14,7 @@ use crate::model::req::user::pwd::reset_pwd_req::ResetPwdReq;
 use crate::model::req::user::query::user_query_params::UserQueryParams;
 use crate::model::req::user::reg::reg_req::RegReq;
 use crate::service::app::app_service::{query_app_by_app_id, query_cached_app};
+use crate::service::notify::sms_service::send_sms;
 use crate::service::oauth::oauth_service::insert_refresh_token;
 use crate::service::user::user_service::{
     change_user_pwd, handle_update_nickname, query_user_by_product_id,
@@ -232,7 +236,18 @@ pub async fn change_nickname(
     )
 )]
 #[put("/pwd/send-verify-code")]
-pub async fn send_verify_code() -> impl Responder {
+pub async fn send_verify_code(
+    params: actix_web_validator::Json<LoginSmsVerifyReq>,
+) -> impl Responder {
+    // user not exists
+    let cached_app = query_cached_app(&params.0.app_id);
+    let _user = get_cached_user_by_phone(&params.0.phone, &cached_app);
+    let sms_req = SmsReq {
+        phone: params.0.phone,
+        app_id: params.0.app_id,
+        tpl_code: "found_pwd".to_owned(),
+    };
+    send_sms(&sms_req);
     return box_actix_rest_response("ok");
 }
 

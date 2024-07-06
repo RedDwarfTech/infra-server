@@ -1,26 +1,4 @@
-// @generated automatically by Diesel CLI.
-
-diesel::table! {
-    admin_users (id) {
-        id -> Int8,
-        nickname -> Varchar,
-        avatar_url -> Varchar,
-        phone -> Varchar,
-        updated_time -> Int8,
-        created_time -> Int8,
-        salt -> Varchar,
-        pwd -> Varchar,
-        sex -> Nullable<Int4>,
-        level_type -> Nullable<Varchar>,
-        phone_region -> Varchar,
-        country_code -> Int4,
-        user_status -> Int4,
-        user_name -> Varchar,
-        org_id -> Int4,
-    }
-}
-
-diesel::table! {
+table! {
     app_map (id) {
         id -> Int8,
         app_id -> Varchar,
@@ -42,12 +20,10 @@ diesel::table! {
     }
 }
 
-diesel::table! {
+table! {
     apps (id) {
         id -> Int4,
-        #[max_length = 256]
         app_name -> Varchar,
-        #[max_length = 256]
         remark -> Varchar,
         created_time -> Int8,
         updated_time -> Int8,
@@ -62,7 +38,7 @@ diesel::table! {
     }
 }
 
-diesel::table! {
+table! {
     iap_product (id) {
         id -> Int8,
         product_id -> Int4,
@@ -83,7 +59,7 @@ diesel::table! {
     }
 }
 
-diesel::table! {
+table! {
     oauth2_refresh_token (id) {
         id -> Int8,
         refresh_token -> Varchar,
@@ -101,7 +77,7 @@ diesel::table! {
     }
 }
 
-diesel::table! {
+table! {
     order_items (id) {
         order_id -> Varchar,
         iap_product_id -> Int8,
@@ -113,7 +89,7 @@ diesel::table! {
     }
 }
 
-diesel::table! {
+table! {
     orders (id) {
         id -> Int8,
         user_id -> Int8,
@@ -130,13 +106,13 @@ diesel::table! {
         order_id -> Varchar,
         seller_id -> Varchar,
         deleted -> Int2,
+        paied_amount -> Int8,
     }
 }
 
-diesel::table! {
+table! {
     payments (id) {
         id -> Int8,
-        #[max_length = 32]
         payment_id -> Varchar,
         order_id -> Varchar,
         amount -> Numeric,
@@ -146,20 +122,20 @@ diesel::table! {
     }
 }
 
-diesel::table! {
-    payments_legacy (id) {
-        #[max_length = 32]
-        payment_id -> Varchar,
-        order_id -> Varchar,
-        amount -> Numeric,
-        status -> Int4,
-        created_time -> Int8,
-        updated_time -> Int8,
+table! {
+    sms_config (id) {
         id -> Int8,
+        access_key_id -> Varchar,
+        access_key_secret -> Varchar,
+        created_time -> Int8,
+        updated_time -> Int8,
+        server_region -> Nullable<Varchar>,
+        sign_name -> Varchar,
+        app_id -> Varchar,
     }
 }
 
-diesel::table! {
+table! {
     user_sub (id) {
         id -> Int8,
         app_id -> Varchar,
@@ -177,23 +153,7 @@ diesel::table! {
     }
 }
 
-diesel::table! {
-    user_sub_legacy (id) {
-        app_id -> Varchar,
-        product_id -> Int4,
-        iap_product_id -> Varchar,
-        created_time -> Int8,
-        updated_time -> Int8,
-        user_id -> Int8,
-        sub_start_time -> Int8,
-        sub_end_time -> Int8,
-        enabled -> Int2,
-        order_id -> Varchar,
-        id -> Int8,
-    }
-}
-
-diesel::table! {
+table! {
     users (id) {
         id -> Int8,
         nickname -> Varchar,
@@ -219,8 +179,7 @@ diesel::table! {
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(
-    admin_users,
+allow_tables_to_appear_in_same_query!(
     app_map,
     apps,
     iap_product,
@@ -228,8 +187,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     order_items,
     orders,
     payments,
-    payments_legacy,
+    sms_config,
     user_sub,
-    user_sub_legacy,
     users,
 );

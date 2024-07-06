@@ -37,6 +37,19 @@ pub fn query_user_by_id(u_id: &i64) -> User {
     return db_user;
 }
 
+pub fn query_user_by_phone(phone_number: &String, filter_product_id: &i32) -> User {
+    use crate::model::diesel::dolphin::dolphin_schema::users as query_table;
+    let predicate = query_table::phone
+        .eq(phone_number)
+        .and(query_table::product_id.eq(filter_product_id));
+    let db_user = query_table::table
+        .filter(&predicate)
+        .limit(1)
+        .first::<User>(&mut get_conn())
+        .expect("query user by id failed");
+    return db_user;
+}
+
 pub fn add_user(add_u: &UserAdd) {
     use crate::model::diesel::dolphin::dolphin_schema::users as users_table;
     diesel::insert_into(users_table::dsl::users)

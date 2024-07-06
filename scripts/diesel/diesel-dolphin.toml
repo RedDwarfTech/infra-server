@@ -14,5 +14,6 @@ filter = { only_tables = [
     "order_items",
     "payments",
     "order_items",
-    "user_sub"
+    "user_sub",
+    "sms_config"
 ] }

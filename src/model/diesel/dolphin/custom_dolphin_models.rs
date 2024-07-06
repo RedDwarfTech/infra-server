@@ -135,7 +135,8 @@ pub struct Order {
     pub product_code: String,
     pub order_id: String,
     pub seller_id: String,
-    pub deleted: i16
+    pub deleted: i16,
+    pub paied_amount: i64,
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
@@ -178,4 +179,17 @@ pub struct Payment {
     pub status: i32,
     pub created_time: i64,
     pub updated_time: i64,
+}
+
+#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[diesel(table_name = sms_config)]
+pub struct SmsConfig {
+    pub id: i64,
+    pub access_key_id: String,
+    pub access_key_secret: String,
+    pub created_time: i64,
+    pub updated_time: i64,
+    pub server_region: Option<String>,
+    pub sign_name: String,
+    pub app_id: String,
 }

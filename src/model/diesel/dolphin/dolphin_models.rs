@@ -11,27 +11,7 @@ use bigdecimal::BigDecimal;
 use chrono::DateTime;
 use chrono::offset::Utc;
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
-#[table_name = "admin_users"]
-pub struct AdminUser {
-    pub id: i64,
-    pub nickname: String,
-    pub avatar_url: String,
-    pub phone: String,
-    pub updated_time: i64,
-    pub created_time: i64,
-    pub salt: String,
-    pub pwd: String,
-    pub sex: Option<i32>,
-    pub level_type: Option<String>,
-    pub phone_region: String,
-    pub country_code: i32,
-    pub user_status: i32,
-    pub user_name: String,
-    pub org_id: i32,
-}
-
-#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
-#[table_name = "app_map"]
+#[diesel(table_name = "app_map")]
 pub struct AppMap {
     pub id: i64,
     pub app_id: String,
@@ -49,10 +29,11 @@ pub struct AppMap {
     pub app_secret: Option<String>,
     pub app_private_key_pkcs1: String,
     pub app_public_key_pkcs1: String,
+    pub alipay_public_key: String,
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
-#[table_name = "apps"]
+#[diesel(table_name = "apps")]
 pub struct App {
     pub id: i32,
     pub app_name: String,
@@ -70,7 +51,7 @@ pub struct App {
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
-#[table_name = "iap_product"]
+#[diesel(table_name = "iap_product")]
 pub struct IapProduct {
     pub id: i64,
     pub product_id: i32,
@@ -91,7 +72,7 @@ pub struct IapProduct {
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
-#[table_name = "oauth2_refresh_token"]
+#[diesel(table_name = "oauth2_refresh_token")]
 pub struct Oauth2RefreshToken {
     pub id: i64,
     pub refresh_token: String,
@@ -109,7 +90,7 @@ pub struct Oauth2RefreshToken {
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
-#[table_name = "order_items"]
+#[diesel(table_name = "order_items")]
 pub struct OrderItem {
     pub order_id: String,
     pub iap_product_id: i64,
@@ -121,9 +102,9 @@ pub struct OrderItem {
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
-#[table_name = "orders"]
+#[diesel(table_name = "orders")]
 pub struct Order {
-    pub id: i32,
+    pub id: i64,
     pub user_id: i64,
     pub total_price: BigDecimal,
     pub order_status: i32,
@@ -137,10 +118,12 @@ pub struct Order {
     pub product_code: String,
     pub order_id: String,
     pub seller_id: String,
+    pub deleted: i16,
+    pub paied_amount: i64,
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
-#[table_name = "payments"]
+#[diesel(table_name = "payments")]
 pub struct Payment {
     pub id: i64,
     pub payment_id: String,
@@ -152,19 +135,20 @@ pub struct Payment {
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
-#[table_name = "payments_legacy"]
-pub struct PaymentsLegacy {
-    pub payment_id: String,
-    pub order_id: String,
-    pub amount: BigDecimal,
-    pub status: i32,
+#[diesel(table_name = "sms_config")]
+pub struct SmsConfig {
+    pub id: i64,
+    pub access_key_id: String,
+    pub access_key_secret: String,
     pub created_time: i64,
     pub updated_time: i64,
-    pub id: i64,
+    pub server_region: Option<String>,
+    pub sign_name: String,
+    pub app_id: String,
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
-#[table_name = "user_sub"]
+#[diesel(table_name = "user_sub")]
 pub struct UserSub {
     pub id: i64,
     pub app_id: String,
@@ -182,23 +166,7 @@ pub struct UserSub {
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
-#[table_name = "user_sub_legacy"]
-pub struct UserSubLegacy {
-    pub app_id: String,
-    pub product_id: i32,
-    pub iap_product_id: String,
-    pub created_time: i64,
-    pub updated_time: i64,
-    pub user_id: i64,
-    pub sub_start_time: i64,
-    pub sub_end_time: i64,
-    pub enabled: i16,
-    pub order_id: String,
-    pub id: i64,
-}
-
-#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
-#[table_name = "users"]
+#[diesel(table_name = "users")]
 pub struct User {
     pub id: i64,
     pub nickname: String,

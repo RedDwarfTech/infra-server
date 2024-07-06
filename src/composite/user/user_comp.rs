@@ -1,15 +1,22 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::{
-    common::cache::user_cache::{get_rd_user_cached_key, get_user_cached_key},
+    common::cache::user_cache::{
+        get_rd_user_cached_key, get_user_by_phone_cached_key, get_user_cached_key,
+    },
     model::{
-        diesel::{custom::user::user_add::UserAdd, dolphin::custom_dolphin_models::{App, User}},
+        diesel::{
+            custom::user::user_add::UserAdd,
+            dolphin::custom_dolphin_models::{App, User},
+        },
         req::user::reg::reg_req::RegReq,
     },
     service::{
         app::app_service::query_cached_app,
         user::{
-            user_service::{add_user, query_user_by_id, query_user_by_product_id},
+            user_service::{
+                add_user, query_user_by_id, query_user_by_phone, query_user_by_product_id,
+            },
             user_sub_service::get_user_sub_expire_time,
         },
     },
@@ -22,12 +29,18 @@ use rust_wheel::{
             security_util::get_sha, str_util::generate_random_string,
             time_util::get_current_millisecond,
         },
-        wrapper::actix_http_resp::{box_actix_rest_response, box_err_actix_rest_response, box_error_actix_rest_response},
+        wrapper::actix_http_resp::{
+            box_actix_rest_response, box_err_actix_rest_response, box_error_actix_rest_response,
+        },
     },
-    config::cache::redis_util::sync_get_str,
-    model::{error::infra_error::InfraError, user::{
-        login_user_info::LoginUserInfo, rd_user_info::RdUserInfo, web_jwt_payload::WebJwtPayload,
-    }},
+    config::cache::redis_util::{set_str, sync_get_str},
+    model::{
+        error::infra_error::InfraError,
+        user::{
+            login_user_info::LoginUserInfo, rd_user_info::RdUserInfo,
+            web_jwt_payload::WebJwtPayload,
+        },
+    },
 };
 
 pub fn comp_current_user(login_user_info: &LoginUserInfo) -> RdUserInfo {
@@ -62,7 +75,28 @@ pub fn get_cached_user(login_user_info: &LoginUserInfo, app: &App) -> User {
         let u_model: User = serde_json::from_str(&cached_user_info.unwrap()).unwrap();
         return u_model;
     }
-    let u_info = query_user_by_id(&login_user_info.userId);    
+    let u_info = query_user_by_id(&login_user_info.userId);
+    set_str(
+        &user_cached_key,
+        serde_json::to_string(&u_info).unwrap().as_str(),
+        86400,
+    );
+    return u_info;
+}
+
+pub fn get_cached_user_by_phone(phone_number: &String, app: &App) -> User {
+    let user_cached_key = get_user_by_phone_cached_key(&app.app_id, phone_number);
+    let cached_user_info = sync_get_str(&user_cached_key);
+    if cached_user_info.is_some() {
+        let u_model: User = serde_json::from_str(&cached_user_info.unwrap()).unwrap();
+        return u_model;
+    }
+    let u_info = query_user_by_phone(phone_number, &app.product_id);
+    set_str(
+        &user_cached_key,
+        serde_json::to_string(&u_info).unwrap().as_str(),
+        86400,
+    );
     return u_info;
 }
 
