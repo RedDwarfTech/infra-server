@@ -55,6 +55,8 @@ paypal-rs = "0.2.5"
 thiserror = "1.0.61"
 openssl = "*"
 openssl-probe = "0.1.2"
+alibaba-cloud-sdk-rust = "0.1.10"
+gostd = "0.3.18"
 
 [profile.release]
 # https://stackoverflow.com/questions/29008127/why-are-rust-executables-so-huge
