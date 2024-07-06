@@ -22,6 +22,7 @@ const AliyunSmsSignName: &str = "阿里云"; // 短信署名
 )]
 #[post("/send")]
 pub async fn send(_params: web::Query<SmsReq>) -> impl Responder {
+    // the sms quota of each app check
     match send_sms(&_params.0) {
         Ok(response) => box_actix_rest_response(response),
         Err(_err) => box_actix_rest_response("err"),
