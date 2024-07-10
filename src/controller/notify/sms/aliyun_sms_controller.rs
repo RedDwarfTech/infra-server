@@ -9,7 +9,7 @@ use crate::{model::req::notify::sms::sms_req::SmsReq, service::notify::sms_servi
     context_path = "/infra-inner/sms/send",
     path = "/",
     responses(
-        (status = 200, description = "get order status")
+        (status = 200, description = "send sms status")
     )
 )]
 #[post("/send")]
@@ -22,6 +22,6 @@ pub async fn send(_params: web::Query<SmsReq>) -> impl Responder {
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {
-    let scope = web::scope("/infra-inner/sms").service(send);
-    conf.service(scope);
+    let scope_inner = web::scope("/infra-inner/sms").service(send);
+    conf.service(scope_inner);
 }

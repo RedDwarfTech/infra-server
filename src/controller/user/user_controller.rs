@@ -247,7 +247,11 @@ pub async fn send_verify_code(
         app_id: params.0.app_id,
         tpl_code: "found_pwd".to_owned(),
     };
-    send_sms(&sms_req);
+    let send_result = send_sms(&sms_req);
+    if let Err(e) = send_result {
+        error!("send failed,{}", e);
+        return box_actix_rest_response("ok");
+    }
     return box_actix_rest_response("ok");
 }
 
