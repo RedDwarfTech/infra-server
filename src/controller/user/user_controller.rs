@@ -22,6 +22,7 @@ use crate::service::user::user_service::{
 use actix_web::{get, patch, post, put, web, Responder};
 use chrono::Local;
 use log::error;
+use rand::Rng;
 use rust_wheel::common::util::security_util::get_sha;
 use rust_wheel::common::wrapper::actix_http_resp::box_error_actix_rest_response;
 use rust_wheel::common::wrapper::actix_http_resp::{
@@ -229,13 +230,13 @@ pub async fn change_nickname(
 ///
 /// Update nickname
 #[utoipa::path(
-    context_path = "/infra-inner/user/pwd/send-verify-code",
+    context_path = "/infra/user/pwd/send-reset-verify-code",
     path = "/",
     responses(
         (status = 200, description = "change current user nickname")
     )
 )]
-#[put("/pwd/send-verify-code")]
+#[put("/pwd/send-reset-verify-code")]
 pub async fn send_verify_code(
     params: actix_web_validator::Json<LoginSmsVerifyReq>,
 ) -> impl Responder {
@@ -245,7 +246,7 @@ pub async fn send_verify_code(
     let sms_req = SmsReq {
         phone: params.0.phone,
         app_id: params.0.app_id,
-        tpl_code: "found_pwd".to_owned(),
+        tpl_code: "SMS_276281669".to_string(),
     };
     let send_result = send_sms(&sms_req);
     if let Err(e) = send_result {

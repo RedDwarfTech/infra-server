@@ -4,6 +4,7 @@ use crate::{
 };
 use alibaba_cloud_sdk_rust::services::dysmsapi;
 use gostd::strings;
+use log::info;
 
 pub fn send_sms(sms_req: &SmsReq) -> Result<(), std::io::Error> {
     let sms_conf: SmsConfig = get_app_sms_config(&sms_req.app_id);
@@ -17,7 +18,6 @@ pub fn send_sms(sms_req: &SmsReq) -> Result<(), std::io::Error> {
     request.SignName = sms_conf.sign_name.to_owned();
     request.TemplateCode = sms_req.tpl_code.to_owned();
     let response = client.SendSms(&mut request)?;
-    println!("{:?}", &response);
-
+    info!("send sms message result: {:?}", &response);
     Ok(())
 }
