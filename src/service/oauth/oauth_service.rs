@@ -4,17 +4,25 @@ use crate::model::diesel::custom::oauth::oauth_add::OauthAdd;
 use crate::model::diesel::dolphin::custom_dolphin_models::Oauth2RefreshToken;
 use crate::model::diesel::dolphin::dolphin_schema::oauth2_refresh_token::expire_date;
 use chrono::Local;
+use log::error;
 
-pub fn query_refresh_token(input_token: &String) -> Oauth2RefreshToken {
+pub fn query_refresh_token(input_token: &String) -> Option<Oauth2RefreshToken> {
     use crate::model::diesel::dolphin::dolphin_schema::oauth2_refresh_token as oauth_table;
     let predicate = oauth_table::refresh_token.eq(input_token);
     let err_msg = format!("query refresh token failed，input token:{}", input_token);
-    let token = oauth_table::table
+    let result = oauth_table::table
         .filter(&predicate)
         .limit(1)
-        .first::<Oauth2RefreshToken>(&mut get_conn())
-        .expect(&err_msg);
-    return token;
+        .first::<Oauth2RefreshToken>(&mut get_conn());
+    match result {
+        Ok(data) => {
+            return Some(data);
+        }
+        Err(_) => {
+            error!("{}",err_msg);
+            return None;
+        }
+    }
 }
 
 pub fn insert_refresh_token(oauth_new: &OauthAdd) {

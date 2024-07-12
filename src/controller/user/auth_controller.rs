@@ -14,10 +14,10 @@ use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
 use jsonwebtoken::errors::ErrorKind;
 use log::error;
 use rust_wheel::{
-    common::wrapper::actix_http_resp::box_actix_rest_response,
-    model::user::jwt_auth::{
+    common::wrapper::actix_http_resp::{box_actix_rest_response, box_err_actix_rest_response},
+    model::{error::infra_error::InfraError, user::jwt_auth::{
         create_access_token, get_auth_token_from_traefik, get_forward_url_path, verify_jwt_token,
-    },
+    }},
 };
 use sha256::digest;
 
@@ -42,15 +42,19 @@ pub async fn refresh_access_token(
     let input = String::from(&form.0.refresh_token);
     let val = digest(input);
     let db_refresh_token = query_refresh_token(&val);
-    let app = query_cached_app(&db_refresh_token.app_id);
+    if db_refresh_token.is_none() {
+        return box_err_actix_rest_response(InfraError::DataNotFound);
+    }
+    let unwrapped = db_refresh_token.unwrap();
+    let app = query_cached_app(&unwrapped.app_id);
     let payload = get_jwt_payload(
-        &db_refresh_token.user_id.clone(),
-        &db_refresh_token.device_id.clone(),
+        &unwrapped.user_id.clone(),
+        &unwrapped.device_id.clone(),
         &app.app_id,
         &app.product_id,
     );
     let access_token = create_access_token(&payload);
-    update_refresh_token_exp_time(&db_refresh_token);
+    update_refresh_token_exp_time(&unwrapped);
     let resp = AuthResp::from(access_token);
     return box_actix_rest_response(resp);
 }
