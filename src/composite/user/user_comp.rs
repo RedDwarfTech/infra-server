@@ -84,19 +84,21 @@ pub fn get_cached_user(login_user_info: &LoginUserInfo, app: &App) -> User {
     return u_info;
 }
 
-pub fn get_cached_user_by_phone(phone_number: &String, app: &App) -> User {
+pub fn get_cached_user_by_phone(phone_number: &String, app: &App) -> Option<User> {
     let user_cached_key = get_user_by_phone_cached_key(&app.app_id, phone_number);
     let cached_user_info = sync_get_str(&user_cached_key);
     if cached_user_info.is_some() {
         let u_model: User = serde_json::from_str(&cached_user_info.unwrap()).unwrap();
-        return u_model;
+        return Some(u_model);
     }
     let u_info = query_user_by_phone(phone_number, &app.product_id);
-    set_str(
-        &user_cached_key,
-        serde_json::to_string(&u_info).unwrap().as_str(),
-        86400,
-    );
+    if u_info.is_some() {
+        set_str(
+            &user_cached_key,
+            serde_json::to_string(&u_info).unwrap().as_str(),
+            86400,
+        );
+    }
     return u_info;
 }
 

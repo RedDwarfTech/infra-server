@@ -5,6 +5,7 @@ use crate::model::diesel::dolphin::custom_dolphin_models::User;
 use crate::model::req::user::edit::change_pwd_req::ChangePwdReq;
 use crate::model::req::user::edit::edit_user_params::EditUserParams;
 use actix_web::HttpResponse;
+use log::error;
 use rust_wheel::common::util::security_util::get_sha;
 use rust_wheel::common::util::str_util::generate_random_string;
 use rust_wheel::common::util::time_util::get_current_millisecond;
@@ -37,7 +38,7 @@ pub fn query_user_by_id(u_id: &i64) -> User {
     return db_user;
 }
 
-pub fn query_user_by_phone(phone_number: &String, filter_product_id: &i32) -> User {
+pub fn query_user_by_phone(phone_number: &String, filter_product_id: &i32) -> Option<User> {
     use crate::model::diesel::dolphin::dolphin_schema::users as query_table;
     let predicate = query_table::phone
         .eq(phone_number)
@@ -45,9 +46,17 @@ pub fn query_user_by_phone(phone_number: &String, filter_product_id: &i32) -> Us
     let db_user = query_table::table
         .filter(&predicate)
         .limit(1)
-        .first::<User>(&mut get_conn())
-        .expect("query user by id failed");
-    return db_user;
+        .first::<User>(&mut get_conn());
+    match db_user {
+        Ok(data) => return Some(data),
+        Err(err) => {
+            error!(
+                "query user facing issue,{},phone:{},product_id:{}",
+                err, phone_number, filter_product_id
+            );
+            return None;
+        }
+    }
 }
 
 pub fn add_user(add_u: &UserAdd) {

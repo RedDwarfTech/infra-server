@@ -241,7 +241,10 @@ pub async fn send_verify_code(
 ) -> impl Responder {
     // user not exists
     let cached_app = query_cached_app(&params.0.app_id);
-    let _user = get_cached_user_by_phone(&params.0.phone, &cached_app);
+    let user = get_cached_user_by_phone(&params.0.phone, &cached_app);
+    if user.is_none() {
+        return box_actix_rest_response("ok");
+    }
     let sms_req = SmsReq {
         phone: params.0.phone,
         app_id: params.0.app_id,
