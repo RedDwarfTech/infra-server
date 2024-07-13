@@ -8,7 +8,7 @@ use crate::{
         app::app_service::query_cached_app,
         oauth::oauth_service::{query_refresh_token, update_refresh_token_exp_time},
     },
-    HASHMAP,
+    VEC,
 };
 use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
 use jsonwebtoken::errors::ErrorKind;
@@ -79,7 +79,7 @@ pub async fn refresh_access_token(
 pub async fn verify_access_token(req: HttpRequest) -> impl Responder {
     let forward_url = get_forward_url_path(&req);
     if forward_url.is_some() {
-        if HASHMAP.contains_key(forward_url.unwrap()) {
+        if VEC.contains(&forward_url.unwrap().to_string()) {
             return box_actix_rest_response("ok");
         }
     }

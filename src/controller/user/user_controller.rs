@@ -22,7 +22,6 @@ use crate::service::user::user_service::{
 use actix_web::{get, patch, post, put, web, Responder};
 use chrono::Local;
 use log::error;
-use rand::Rng;
 use rust_wheel::common::util::security_util::get_sha;
 use rust_wheel::common::wrapper::actix_http_resp::box_error_actix_rest_response;
 use rust_wheel::common::wrapper::actix_http_resp::{

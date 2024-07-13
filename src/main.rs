@@ -11,6 +11,8 @@ pub mod service;
 mod swagger_docs;
 mod types;
 
+use std::env;
+
 use crate::controller::user::user_controller;
 use crate::swagger_docs::ApiDoc;
 use actix_web::App;
@@ -24,23 +26,15 @@ use controller::pay::paypal::paypal_controller;
 use controller::user::auth_controller;
 use lazy_static::lazy_static;
 use rust_wheel::config::app::app_conf_reader::get_app_config;
-use std::collections::HashMap;
 use utoipa::OpenApi;
 use utoipa_rapidoc::RapiDoc;
 use utoipa_swagger_ui::SwaggerUi;
 
 lazy_static! {
-    static ref HASHMAP: HashMap<&'static str, &'static str> = {
-        let mut m = HashMap::new();
-        m.insert(
-            "/infra/alipay/notification/v1/alipaySeverNotification",
-            "foo",
-        );
-        m.insert("/infra/auth/access-token/refresh", "foo");
-        m.insert("/infra/user/reg", "foo");
-        m.insert("/infra/user/pwd/send-verify-code", "foo");
-        m.insert("/infra/user/verify", "foo");
-        m
+    static ref VEC: Vec<String> = {
+        let ignore_url: String = env::var("IGNORE_LOGIN_URL").expect("ignore url config missing");
+        let parts: Vec<String> = ignore_url.split(',').map(|s| s.to_string()).collect();
+        parts
     };
 }
 
