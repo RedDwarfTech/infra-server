@@ -15,9 +15,13 @@ use jsonwebtoken::errors::ErrorKind;
 use log::error;
 use rust_wheel::{
     common::wrapper::actix_http_resp::{box_actix_rest_response, box_err_actix_rest_response},
-    model::{error::infra_error::InfraError, user::jwt_auth::{
-        create_access_token, get_auth_token_from_traefik, get_forward_url_path, verify_jwt_token,
-    }},
+    model::{
+        error::infra_error::InfraError,
+        user::jwt_auth::{
+            create_access_token, get_auth_token_from_traefik, get_forward_url_path,
+            verify_jwt_token,
+        },
+    },
 };
 use sha256::digest;
 
@@ -85,6 +89,10 @@ pub async fn verify_access_token(req: HttpRequest) -> impl Responder {
     }
     let access_token = get_auth_token_from_traefik(&req);
     if access_token.is_empty() {
+        error!(
+            "Unauthorized happen,url:{}",
+            forward_url.unwrap_or_default()
+        );
         return HttpResponse::Unauthorized().finish();
     }
     let valid = verify_jwt_token(&access_token.as_str());
