@@ -4,7 +4,7 @@ use crate::{
 };
 use alibaba_cloud_sdk_rust::services::dysmsapi::{self, SendSmsRequest, SendSmsResponse};
 use gostd::strings;
-use log::{error, info};
+use log::error;
 
 pub fn send_sms(sms_req: &SmsReq) -> Option<SendSmsResponse> {
     let sms_conf: SmsConfig = get_app_sms_config(&sms_req.app_id);
