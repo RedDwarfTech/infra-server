@@ -248,11 +248,7 @@ pub async fn send_verify_code(
         tpl_code: "SMS_276281669".to_string(),
     };
     let send_result = send_sms(&sms_req);
-    if let Err(e) = send_result {
-        error!("send failed,{}", e);
-        return box_actix_rest_response("ok");
-    }
-    return box_actix_rest_response("ok");
+    return box_actix_rest_response(send_result.unwrap_or_default());
 }
 
 /// Verify code
