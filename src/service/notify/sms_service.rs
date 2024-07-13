@@ -25,7 +25,7 @@ pub fn send_sms(sms_req: &SmsReq) -> Option<SendSmsResponse> {
     match response {
         Ok(response) => return Some(response),
         Err(err) => {
-            info!("send sms message facing issue: {:?}", &err);
+            error!("send sms message facing issue: {:?}", &err);
             return None;
         }
     }
