@@ -24,6 +24,7 @@ use crate::service::user::user_service::{
 use actix_web::{get, patch, post, put, web, Responder};
 use chrono::Local;
 use log::error;
+use rand::Rng;
 use rust_wheel::common::util::security_util::get_sha;
 use rust_wheel::common::wrapper::actix_http_resp::box_error_actix_rest_response;
 use rust_wheel::common::wrapper::actix_http_resp::{
@@ -271,7 +272,9 @@ pub async fn send_reset_pwd_verify_code(
     };
     let send_result = send_sms(&sms_req);
     if send_result.is_some() {
-        set_str(&caced_key, &send_result.unwrap().Code, 60);
+        let mut rng = rand::thread_rng();
+        let random_number: u32 = rng.gen_range(100000..=999999);
+        set_str(&caced_key, &random_number.to_string(), 60);
         return box_actix_rest_response("ok");
     }
     return box_actix_rest_response("ok");
