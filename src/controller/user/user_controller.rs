@@ -19,7 +19,7 @@ use crate::service::notify::sms_service::send_sms;
 use crate::service::notify::sms_template_service::get_app_sms_tempate;
 use crate::service::oauth::oauth_service::insert_refresh_token;
 use crate::service::user::user_service::{
-    change_user_pwd, handle_update_nickname, query_user_by_product_id,
+    change_user_pwd,reset_user_pwd, handle_update_nickname, query_user_by_product_id,
 };
 use actix_web::{get, patch, post, put, web, Responder};
 use chrono::Local;
@@ -39,6 +39,7 @@ use rust_wheel::model::user::jwt_auth::create_access_token;
 use rust_wheel::model::user::login_user_info::LoginUserInfo;
 use sha256::digest;
 use uuid::Uuid;
+use crate::composite::user::user_comp::is_valid_password;
 
 /// User login
 ///
@@ -109,11 +110,7 @@ pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder 
         //if let Err(e) = incre_resp {
         //    error!("increase login failed failed: {}", e);
         //}
-        return box_error_actix_rest_response(
-            "LOGIN_INFO_NOT_MATCH",
-            "0030010001".to_owned(),
-            "登录信息不匹配".to_owned(),
-        );
+        return box_err_actix_rest_response(InfraError::LoginInfoNotMatch);
     }
 }
 
@@ -327,7 +324,28 @@ pub async fn send_login_verify_code(
     )
 )]
 #[put("/pwd/reset")]
-pub async fn reset_pwd(_params: actix_web_validator::Json<ResetPwdReq>) -> impl Responder {
+pub async fn reset_pwd(params: actix_web_validator::Json<ResetPwdReq>) -> impl Responder {
+    let caced_key = format!("infra:user:sms:{}", &params.0.phone);
+    let redis_resp = get_str_default(&caced_key);
+    if let Err(e) = redis_resp.as_ref() {
+        error!("get cache failed,{}, params: {:?}", e, params);
+        return box_err_actix_rest_response(InfraError::DataNotFound);
+    }
+    if redis_resp.as_ref().unwrap().is_none() {
+        return box_err_actix_rest_response(InfraError::DataNotFound);
+    }
+    if redis_resp.unwrap().unwrap() != params.0.code {
+        return box_err_actix_rest_response(InfraError::SmsVerifyCodeNotMatch);
+    }
+    let app: App = query_cached_app(&params.0.app_id);
+    let cur_user = get_cached_user_by_phone(&params.phone, &app);
+    if cur_user.is_none() {
+        return box_err_actix_rest_response(InfraError::DataNotFound);
+    }
+    if !is_valid_password(&params.0.password) {
+        return box_err_actix_rest_response(InfraError::PwdNitMatchComplexGuide);
+    }
+    reset_user_pwd(&params.0, &cur_user.unwrap());
     return box_actix_rest_response("ok");
 }
 

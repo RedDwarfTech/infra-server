@@ -4,6 +4,7 @@ use crate::model::diesel::custom::user::user_add::UserAdd;
 use crate::model::diesel::dolphin::custom_dolphin_models::User;
 use crate::model::req::user::edit::change_pwd_req::ChangePwdReq;
 use crate::model::req::user::edit::edit_user_params::EditUserParams;
+use crate::model::req::user::pwd::reset_pwd_req::ResetPwdReq;
 use actix_web::HttpResponse;
 use log::error;
 use rust_wheel::common::util::security_util::get_sha;
@@ -80,11 +81,11 @@ pub async fn handle_update_nickname(edit_req: &EditUserParams, login_user_info: 
         .expect("unable to update user nickname");
 }
 
-pub fn handle_update_pwd(edit_req: &ChangePwdReq, uid: &i64) {
+pub fn handle_update_pwd(new_pwd: &String, uid: &i64) {
     use crate::model::diesel::dolphin::dolphin_schema::users as users_table;
     use crate::model::diesel::dolphin::dolphin_schema::users::dsl::*;
     let pwd_salt = generate_random_string(16);
-    let salted_pwd = get_sha(edit_req.new_password.clone(), &pwd_salt);
+    let salted_pwd = get_sha(new_pwd.to_owned(), &pwd_salt);
     let predicate = users_table::id.eq(uid);
     diesel::update(users_table::table.filter(predicate))
         .set((
@@ -99,7 +100,7 @@ pub fn handle_update_pwd(edit_req: &ChangePwdReq, uid: &i64) {
 pub fn change_user_pwd(req: &ChangePwdReq, user_info: &User) -> HttpResponse {
     let old_pwd_match = verify_pwd(&req.old_password, user_info);
     if old_pwd_match {
-        handle_update_pwd(req, &user_info.id);
+        handle_update_pwd(&req.new_password, &user_info.id);
         return box_actix_rest_response("ok");
     } else {
         return box_error_actix_rest_response(
@@ -108,6 +109,11 @@ pub fn change_user_pwd(req: &ChangePwdReq, user_info: &User) -> HttpResponse {
             "登陆信息不匹配".to_owned(),
         );
     }
+}
+
+pub fn reset_user_pwd(req: &ResetPwdReq, user_info: &User) -> HttpResponse {
+    handle_update_pwd(&req.password, &user_info.id);
+    return box_actix_rest_response("ok");
 }
 
 fn verify_pwd(old_pwd: &String, user_info: &User) -> bool {

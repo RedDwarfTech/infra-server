@@ -159,7 +159,7 @@ pub fn do_user_reg(req: &RegReq, app: &App) -> HttpResponse {
 /// https://github.com/rust-lang/regex/issues/618
 /// https://github.com/rust-lang/regex/discussions/910
 ///
-fn is_valid_password(password: &str) -> bool {
+pub fn is_valid_password(password: &str) -> bool {
     // 正则表达式：密码必须包含大写、小写、数字和特殊字符，且长度是8-32位
     let re = Regex::new(r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()-+=]).{8,32}$").unwrap();
     re.is_match(password)
