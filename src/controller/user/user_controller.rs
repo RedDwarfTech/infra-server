@@ -226,9 +226,9 @@ pub async fn change_nickname(
     return box_actix_rest_response("ok");
 }
 
-/// Send verify code
+/// Send reset verify code
 ///
-/// Update nickname
+/// Send reset verify code
 #[utoipa::path(
     context_path = "/infra/user/pwd/send-reset-verify-code",
     path = "/",
@@ -279,9 +279,9 @@ pub async fn send_reset_pwd_verify_code(
 
 /// Verify code
 ///
-/// Update nickname
+/// Verify code
 #[utoipa::path(
-    context_path = "/infra-inner/user/pwd/send-verify-code",
+    context_path = "/infra/user/pwd/verify",
     path = "/",
     responses(
         (status = 200, description = "change current user nickname")
@@ -313,11 +313,11 @@ pub async fn send_login_verify_code(
     }
 }
 
-/// Verify code
+/// Reset password
 ///
-/// Update nickname
+/// Reset password
 #[utoipa::path(
-    context_path = "/infra-inner/user/pwd/send-verify-code",
+    context_path = "/infra/user/pwd/send-verify-code",
     path = "/",
     responses(
         (status = 200, description = "change current user nickname")

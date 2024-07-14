@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, env};
 
 use crate::{
     model::{diesel::dolphin::custom_dolphin_models::SmsConfig, req::notify::sms::sms_req::SmsReq},
@@ -29,12 +29,23 @@ pub fn send_sms(sms_req: &SmsReq) -> Option<SendSmsResponse> {
     let mut params = HashMap::new();
     params.insert("code", random_number);
     request.TemplateParam = serde_json::to_string(&params).unwrap();
+    let ignore_url: String = env::var("SMS_TEST_PHONE").expect("ignore url config missing");
+    let parts: Vec<String> = ignore_url.split(',').map(|s| s.to_string()).collect();
+    if parts.contains(&sms_req.phone.clone()) {
+        let resp: SendSmsResponse = SendSmsResponse {
+            RequestId: "1".to_string(),
+            BizId: "1".to_string(),
+            Code: "12".to_owned(),
+            Message: "ok".to_owned(),
+        };
+        return Some(resp);
+    }
     let response = client.unwrap().SendSms(&mut request);
     match response {
         Ok(response) => {
-            let  resp = serde_json::from_slice(&response.httpContentBytes);
+            let resp = serde_json::from_slice(&response.httpContentBytes);
             return Some(resp.unwrap_or_default());
-        },
+        }
         Err(err) => {
             error!("send sms message facing issue: {:?}", &err);
             return None;
