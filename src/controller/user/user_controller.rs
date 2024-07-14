@@ -15,6 +15,7 @@ use crate::model::req::user::query::user_query_params::UserQueryParams;
 use crate::model::req::user::reg::reg_req::RegReq;
 use crate::service::app::app_service::{query_app_by_app_id, query_cached_app};
 use crate::service::notify::sms_service::send_sms;
+use crate::service::notify::sms_template_service::get_app_sms_tempate;
 use crate::service::oauth::oauth_service::insert_refresh_token;
 use crate::service::user::user_service::{
     change_user_pwd, handle_update_nickname, query_user_by_product_id,
@@ -28,7 +29,9 @@ use rust_wheel::common::wrapper::actix_http_resp::{
     box_actix_rest_response, box_err_actix_rest_response,
 };
 use rust_wheel::config::app::app_conf_reader::get_app_config;
-use rust_wheel::config::cache::redis_util::{incre_redis_key, set_str, sync_get_str};
+use rust_wheel::config::cache::redis_util::{
+    get_str_default, incre_redis_key, set_str, sync_get_str,
+};
 use rust_wheel::model::error::infra_error::InfraError;
 use rust_wheel::model::response::user::login_response::LoginResponse;
 use rust_wheel::model::user::jwt_auth::create_access_token;
@@ -236,21 +239,42 @@ pub async fn change_nickname(
     )
 )]
 #[put("/pwd/send-reset-verify-code")]
-pub async fn send_verify_code(
+pub async fn send_reset_pwd_verify_code(
     params: actix_web_validator::Json<LoginSmsVerifyReq>,
 ) -> impl Responder {
+    let caced_key = format!("infra:user:reset-pwd:{}", params.0.phone);
+    let redis_resp = get_str_default(&caced_key);
+    match redis_resp {
+        Ok(data) => {
+            if data.is_some() {
+                return box_actix_rest_response("too freqency, try again later");
+            }
+        }
+        Err(e) => {
+            error!("get redis reset info failed,{},params:{:?}", e, params.0);
+            return box_actix_rest_response("ok");
+        }
+    }
     // user not exists
     let cached_app = query_cached_app(&params.0.app_id);
     let user = get_cached_user_by_phone(&params.0.phone, &cached_app);
     if user.is_none() {
         return box_actix_rest_response("ok");
     }
+    let sms_tpl = get_app_sms_tempate(&params.0.app_id, &"reset_pwd".to_owned());
+    if sms_tpl.is_none() {
+        error!("send reset pwd get template is null,{:?}", &params.0);
+        return box_actix_rest_response("ok");
+    }
     let sms_req = SmsReq {
         phone: params.0.phone,
         app_id: params.0.app_id,
-        tpl_code: "SMS_276281669".to_string(),
+        tpl_code: sms_tpl.unwrap().sms_code,
     };
     let send_result = send_sms(&sms_req);
+    if send_result.is_some() {
+        set_str(&caced_key, "exists", 60);
+    }
     return box_actix_rest_response(send_result.unwrap_or_default());
 }
 
@@ -265,7 +289,7 @@ pub async fn send_verify_code(
     )
 )]
 #[put("/verify")]
-pub async fn verify_code() -> impl Responder {
+pub async fn send_login_verify_code() -> impl Responder {
     return box_actix_rest_response("ok");
 }
 
@@ -290,8 +314,8 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(change_passowrd)
         .service(reg_user)
         .service(change_nickname)
-        .service(send_verify_code)
-        .service(verify_code)
+        .service(send_reset_pwd_verify_code)
+        .service(send_login_verify_code)
         .service(reset_pwd)
         .service(current_user);
     conf.service(scope);

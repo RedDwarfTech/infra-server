@@ -193,3 +193,14 @@ pub struct SmsConfig {
     pub sign_name: String,
     pub app_id: String,
 }
+
+#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[diesel(table_name = sms_template)]
+pub struct SmsTemplate {
+    pub id: i64,
+    pub biz_code: String,
+    pub sms_code: String,
+    pub created_time: i64,
+    pub updated_time: i64,
+    pub app_id: String,
+}
