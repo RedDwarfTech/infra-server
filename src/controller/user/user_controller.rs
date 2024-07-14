@@ -7,6 +7,7 @@ use crate::model::diesel::custom::oauth::oauth_add::OauthAdd;
 use crate::model::diesel::dolphin::custom_dolphin_models::{App, User};
 use crate::model::req::notify::sms::login_sms_verify_req::LoginSmsVerifyReq;
 use crate::model::req::notify::sms::sms_req::SmsReq;
+use crate::model::req::notify::sms::sms_verify_req::SmsVerifyReq;
 use crate::model::req::user::edit::change_pwd_req::ChangePwdReq;
 use crate::model::req::user::edit::edit_user_params::EditUserParams;
 use crate::model::req::user::login::login_req::LoginReq;
@@ -242,7 +243,7 @@ pub async fn change_nickname(
 pub async fn send_reset_pwd_verify_code(
     params: actix_web_validator::Json<LoginSmsVerifyReq>,
 ) -> impl Responder {
-    let caced_key = format!("infra:user:reset-pwd:{}", params.0.phone);
+    let caced_key = format!("infra:user:sms:{}", params.0.phone);
     let redis_resp = get_str_default(&caced_key);
     match redis_resp {
         Ok(data) => {
@@ -273,9 +274,10 @@ pub async fn send_reset_pwd_verify_code(
     };
     let send_result = send_sms(&sms_req);
     if send_result.is_some() {
-        set_str(&caced_key, "exists", 60);
+        set_str(&caced_key, &send_result.unwrap().Code, 60);
+        return box_actix_rest_response("ok");
     }
-    return box_actix_rest_response(send_result.unwrap_or_default());
+    return box_actix_rest_response("ok");
 }
 
 /// Verify code
@@ -289,8 +291,29 @@ pub async fn send_reset_pwd_verify_code(
     )
 )]
 #[put("/verify")]
-pub async fn send_login_verify_code() -> impl Responder {
-    return box_actix_rest_response("ok");
+pub async fn send_login_verify_code(
+    params: actix_web_validator::Json<SmsVerifyReq>,
+) -> impl Responder {
+    let caced_key = format!("infra:user:sms:{}", params.0.phone);
+    let redis_resp = get_str_default(&caced_key);
+    match redis_resp {
+        Ok(data) => {
+            if data.is_none() {
+                return box_err_actix_rest_response(InfraError::DataNotFound);
+            }
+            if data.unwrap() == params.0.verifyCode {
+                return box_actix_rest_response("ok");
+            }
+            return box_err_actix_rest_response(InfraError::DataNotFound);
+        }
+        Err(e) => {
+            error!(
+                "get redis reset to verify failed,{},params:{:?}",
+                e, params.0
+            );
+            return box_err_actix_rest_response(InfraError::DataNotFound);
+        }
+    }
 }
 
 /// Verify code
