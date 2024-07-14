@@ -15,5 +15,7 @@ filter = { only_tables = [
     "payments",
     "order_items",
     "user_sub",
-    "sms_config"
+    "sms_config",
+    "sms_template",
+    "sms_activate_msg"
 ] }
