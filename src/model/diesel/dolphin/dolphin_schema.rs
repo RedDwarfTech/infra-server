@@ -123,19 +123,6 @@ table! {
 }
 
 table! {
-    sms_activate_msg (id) {
-        id -> Int8,
-        service -> Varchar,
-        created_time -> Int8,
-        updated_time -> Int8,
-        text -> Nullable<Varchar>,
-        template_code -> Varchar,
-        country -> Nullable<Int4>,
-        received_at -> Varchar,
-    }
-}
-
-table! {
     sms_config (id) {
         id -> Int8,
         access_key_id -> Varchar,
@@ -145,6 +132,21 @@ table! {
         server_region -> Nullable<Varchar>,
         sign_name -> Varchar,
         app_id -> Varchar,
+    }
+}
+
+table! {
+    sms_log (id) {
+        id -> Int8,
+        service -> Varchar,
+        created_time -> Int8,
+        updated_time -> Int8,
+        text -> Nullable<Varchar>,
+        template_code -> Varchar,
+        phone -> Nullable<Varchar>,
+        received_at -> Varchar,
+        request_id -> Nullable<Varchar>,
+        biz_id -> Nullable<Varchar>,
     }
 }
 
@@ -211,8 +213,8 @@ allow_tables_to_appear_in_same_query!(
     order_items,
     orders,
     payments,
-    sms_activate_msg,
     sms_config,
+    sms_log,
     sms_template,
     user_sub,
     users,

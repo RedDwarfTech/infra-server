@@ -135,19 +135,6 @@ pub struct Payment {
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
-#[diesel(table_name = "sms_activate_msg")]
-pub struct SmsActivateMsg {
-    pub id: i64,
-    pub service: String,
-    pub created_time: i64,
-    pub updated_time: i64,
-    pub text: Option<String>,
-    pub template_code: String,
-    pub country: Option<i32>,
-    pub received_at: String,
-}
-
-#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
 #[diesel(table_name = "sms_config")]
 pub struct SmsConfig {
     pub id: i64,
@@ -158,6 +145,21 @@ pub struct SmsConfig {
     pub server_region: Option<String>,
     pub sign_name: String,
     pub app_id: String,
+}
+
+#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[diesel(table_name = "sms_log")]
+pub struct SmsLog {
+    pub id: i64,
+    pub service: String,
+    pub created_time: i64,
+    pub updated_time: i64,
+    pub text: Option<String>,
+    pub template_code: String,
+    pub phone: Option<String>,
+    pub received_at: String,
+    pub request_id: Option<String>,
+    pub biz_id: Option<String>,
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]

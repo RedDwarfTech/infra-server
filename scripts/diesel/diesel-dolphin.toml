@@ -17,5 +17,5 @@ filter = { only_tables = [
     "user_sub",
     "sms_config",
     "sms_template",
-    "sms_activate_msg"
+    "sms_log"
 ] }
