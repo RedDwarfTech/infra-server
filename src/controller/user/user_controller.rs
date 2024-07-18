@@ -1,8 +1,10 @@
 use crate::common::cache::user_cache::store_login_user;
+use crate::composite::user::user_comp::is_valid_password;
 use crate::composite::user::user_comp::{
     do_user_reg, get_cached_rd_user, get_cached_user, get_cached_user_by_phone, get_jwt_payload,
     get_rd_user_by_id,
 };
+use crate::model::diesel::custom::notify::sms_log_add::SmsLogAdd;
 use crate::model::diesel::custom::oauth::oauth_add::OauthAdd;
 use crate::model::diesel::dolphin::custom_dolphin_models::{App, User};
 use crate::model::req::notify::sms::login_sms_verify_req::LoginSmsVerifyReq;
@@ -15,11 +17,12 @@ use crate::model::req::user::pwd::reset_pwd_req::ResetPwdReq;
 use crate::model::req::user::query::user_query_params::UserQueryParams;
 use crate::model::req::user::reg::reg_req::RegReq;
 use crate::service::app::app_service::{query_app_by_app_id, query_cached_app};
+use crate::service::notify::sms_log_service::save_sms_log;
 use crate::service::notify::sms_service::send_sms;
 use crate::service::notify::sms_template_service::get_app_sms_tempate;
 use crate::service::oauth::oauth_service::insert_refresh_token;
 use crate::service::user::user_service::{
-    change_user_pwd,reset_user_pwd, handle_update_nickname, query_user_by_product_id,
+    change_user_pwd, handle_update_nickname, query_user_by_product_id, reset_user_pwd,
 };
 use actix_web::{get, patch, post, put, web, Responder};
 use chrono::Local;
@@ -40,7 +43,6 @@ use rust_wheel::model::user::jwt_auth::create_access_token;
 use rust_wheel::model::user::login_user_info::LoginUserInfo;
 use sha256::digest;
 use uuid::Uuid;
-use crate::composite::user::user_comp::is_valid_password;
 
 /// User login
 ///
@@ -275,6 +277,16 @@ pub async fn send_reset_pwd_verify_code(
         let mut rng = rand::thread_rng();
         let random_number: u32 = rng.gen_range(100000..=999999);
         set_str(&caced_key, &random_number.to_string(), 60);
+        let result = send_result.unwrap();
+        let log = SmsLogAdd {
+            service: "reset_pwd".to_string(),
+            text: Some("234".to_string()),
+            template_code: sms_req.tpl_code,
+            phone: Some(sms_req.phone.clone()),
+            request_id: Some(result.Code),
+            biz_id: Some(result.BizId),
+        };
+        save_sms_log(&log);
         return box_actix_rest_response("ok");
     }
     return box_actix_rest_response("ok");
