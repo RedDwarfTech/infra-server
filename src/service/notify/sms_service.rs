@@ -7,9 +7,8 @@ use crate::{
 use alibaba_cloud_sdk_rust::services::dysmsapi::{self, SendSmsRequest, SendSmsResponse};
 use gostd::strings;
 use log::error;
-use rand::Rng;
 
-pub fn send_sms(sms_req: &SmsReq) -> Option<SendSmsResponse> {
+pub fn send_sms(sms_req: &SmsReq, params: HashMap<&str,String>) -> Option<SendSmsResponse> {
     let sms_conf: SmsConfig = get_app_sms_config(&sms_req.app_id);
     let client = dysmsapi::Client::NewClientWithAccessKey(
         sms_conf.server_region.unwrap().as_str(),
@@ -24,10 +23,6 @@ pub fn send_sms(sms_req: &SmsReq) -> Option<SendSmsResponse> {
     request.PhoneNumbers = strings::Replace(sms_req.phone.clone(), "+86", "", -1);
     request.SignName = sms_conf.sign_name.to_owned();
     request.TemplateCode = sms_req.tpl_code.to_owned();
-    let mut rng = rand::thread_rng();
-    let random_number: u32 = rng.gen_range(100000..=999999);
-    let mut params = HashMap::new();
-    params.insert("code", random_number);
     request.TemplateParam = serde_json::to_string(&params).unwrap();
     let ignore_url: String = env::var("SMS_TEST_PHONE").expect("ignore url config missing");
     let parts: Vec<String> = ignore_url.split(',').map(|s| s.to_string()).collect();

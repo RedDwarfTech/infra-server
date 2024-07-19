@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::common::cache::user_cache::store_login_user;
 use crate::composite::user::user_comp::is_valid_password;
 use crate::composite::user::user_comp::{
@@ -267,15 +269,17 @@ pub async fn send_reset_pwd_verify_code(
         error!("send reset pwd get template is null,{:?}", &params.0);
         return box_actix_rest_response("ok");
     }
+    let mut rng = rand::thread_rng();
+    let random_number: u32 = rng.gen_range(100000..=999999);
     let sms_req = SmsReq {
         phone: params.0.phone,
         app_id: params.0.app_id,
         tpl_code: sms_tpl.unwrap().sms_code,
     };
-    let send_result = send_sms(&sms_req);
+    let mut sms_params = HashMap::new();
+    sms_params.insert("code", random_number.to_string());
+    let send_result = send_sms(&sms_req, sms_params);
     if send_result.is_some() {
-        let mut rng = rand::thread_rng();
-        let random_number: u32 = rng.gen_range(100000..=999999);
         set_str(&caced_key, &random_number.to_string(), 60);
         let result = send_result.unwrap();
         let log = SmsLogAdd {
