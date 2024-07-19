@@ -284,7 +284,7 @@ pub async fn send_reset_pwd_verify_code(
         let result = send_result.unwrap();
         let log = SmsLogAdd {
             service: "reset_pwd".to_string(),
-            text: Some("234".to_string()),
+            text: Some(random_number.to_string()),
             template_code: sms_req.tpl_code,
             phone: Some(sms_req.phone.clone()),
             request_id: Some(result.Code),
@@ -315,19 +315,19 @@ pub async fn send_login_verify_code(
     match redis_resp {
         Ok(data) => {
             if data.is_none() {
-                return box_err_actix_rest_response(InfraError::DataNotFound);
+                return box_err_actix_rest_response(InfraError::SmsVerifyCodeNotMatch);
             }
             if data.unwrap() == params.0.verifyCode {
                 return box_actix_rest_response("ok");
             }
-            return box_err_actix_rest_response(InfraError::DataNotFound);
+            return box_err_actix_rest_response(InfraError::SmsVerifyCodeNotMatch);
         }
         Err(e) => {
             error!(
                 "get redis reset to verify failed,{},params:{:?}",
                 e, params.0
             );
-            return box_err_actix_rest_response(InfraError::DataNotFound);
+            return box_err_actix_rest_response(InfraError::SmsVerifyCodeNotMatch);
         }
     }
 }
