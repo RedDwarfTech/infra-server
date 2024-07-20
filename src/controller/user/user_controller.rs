@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::env;
 
 use crate::common::cache::user_cache::store_login_user;
 use crate::composite::user::user_comp::is_valid_password;
@@ -19,7 +20,7 @@ use crate::model::req::user::pwd::reset_pwd_req::ResetPwdReq;
 use crate::model::req::user::query::user_query_params::UserQueryParams;
 use crate::model::req::user::reg::reg_req::RegReq;
 use crate::service::app::app_service::{query_app_by_app_id, query_cached_app};
-use crate::service::notify::sms_log_service::save_sms_log;
+use crate::service::notify::sms_log_service::{count_today_sms_log, save_sms_log};
 use crate::service::notify::sms_service::send_sms;
 use crate::service::notify::sms_template_service::get_app_sms_tempate;
 use crate::service::oauth::oauth_service::insert_refresh_token;
@@ -263,6 +264,13 @@ pub async fn send_reset_pwd_verify_code(
     let user = get_cached_user_by_phone(&params.0.phone, &cached_app);
     if user.is_none() {
         return box_actix_rest_response("ok");
+    }
+    // limit total sms msg count
+    let sms_count = count_today_sms_log();
+    let limit_per_day: String = env::var("LIMIT_PER_DAY").expect("limit per day config missing");
+    let parsed_number: Result<i64, _> = limit_per_day.parse();
+    if sms_count > parsed_number.unwrap() {
+        return box_actix_rest_response("reach today limit, try again later");
     }
     let sms_tpl = get_app_sms_tempate(&params.0.app_id, &"reset_pwd".to_owned());
     if sms_tpl.is_none() {
