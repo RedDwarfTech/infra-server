@@ -1,15 +1,10 @@
-
-
 ### 用户操作
 
 主要测试用户相关操作，登陆、获取当前用户信息等。
 
 #### 用户登陆
 
-
-
 ```bash
-
 curl -X 'PUT' 'http://localhost:8081/infra/user/login' \
   -H 'Accept: application/json, text/plain, */*' \
   -H 'Accept-Language: en,zh-CN;q=0.9,zh;q=0.8,zh-TW;q=0.7,fr;q=0.6' \
@@ -30,25 +25,25 @@ curl -X 'PUT' 'http://localhost:8081/infra/user/login' \
 
 #### 获取当前用户信息
 
-
 ```bash
 curl -X GET -H 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEwMywiZGV2aWNlSWQiOiIzNmQ3MGZhOGZjOWU0NmY0MzViY2QzOGVjNDFiODZlOSIsImFwcElkIjoibjI5UGEyOVdTMSIsImx0IjoxLCJldCI6MCwicGlkIjoxM30._WtyerfX8Ghl9VmYskZHwCSSd1Pqx_OG_DIh6o0xiEo' http://localhost:8081/infra/user/current-user
 ```
 
 
 
+重置用户密码
 
 
 
-
-
-
-
-
-
-
-
-
+```bash
+curl -X PUT 'http://127.0.0.1:8081/infra/user/pwd/reset' \
+  -X 'PUT' \
+  -H 'Accept: application/json, text/plain, */*' \
+  -H 'Accept-Language: en,zh-CN;q=0.9,zh;q=0.8,zh-TW;q=0.7,fr;q=0.6' \
+  -H 'Connection: keep-alive' \
+  -H 'Content-Type: application/json' \
+  --data-raw '{"phone":"15683761628","code":"505137","password":"654321jiang","appId":"n29Pa29WS1"}'
+```
 
 
 

@@ -336,10 +336,10 @@ pub async fn send_login_verify_code(
 ///
 /// Reset password
 #[utoipa::path(
-    context_path = "/infra/user/pwd/send-verify-code",
+    context_path = "/infra/user/pwd/reset",
     path = "/",
     responses(
-        (status = 200, description = "change current user nickname")
+        (status = 200, description = "reset current user password")
     )
 )]
 #[put("/pwd/reset")]
@@ -351,7 +351,7 @@ pub async fn reset_pwd(params: actix_web_validator::Json<ResetPwdReq>) -> impl R
         return box_err_actix_rest_response(InfraError::DataNotFound);
     }
     if redis_resp.as_ref().unwrap().is_none() {
-        return box_err_actix_rest_response(InfraError::DataNotFound);
+        return box_err_actix_rest_response(InfraError::VerifyCodeExpired);
     }
     if redis_resp.unwrap().unwrap() != params.0.code {
         return box_err_actix_rest_response(InfraError::SmsVerifyCodeNotMatch);
