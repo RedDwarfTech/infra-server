@@ -58,6 +58,7 @@ openssl-probe = "0.1.2"
 alibaba-cloud-sdk-rust = { git = "https://github.com/jiangxiaoqiang/alibaba-cloud-sdk-rust.git" }
 gostd = "0.3.18"
 rand = "0.8"
+anyhow = "1.0.86"
 
 [profile.release]
 # https://stackoverflow.com/questions/29008127/why-are-rust-executables-so-huge
