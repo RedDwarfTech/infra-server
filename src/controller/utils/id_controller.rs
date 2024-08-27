@@ -1,14 +1,11 @@
-use crate::model::resp::goods::goods_resp::GoodsResp;
-use crate::service::app::app_service::query_cached_app;
-use crate::service::goods::goods_service::query_goods_list;
+use crate::controller::utils::snowflake::SnowflakeIdWorker;
 use actix_web::{get, web, Responder};
-use rust_wheel::common::util::model_convert::map_entity;
+use log::error;
 use rust_wheel::common::wrapper::actix_http_resp::box_actix_rest_response;
-use rust_wheel::model::user::login_user_info::LoginUserInfo;
 
-/// Get product list
+/// Get uniq id
 ///
-/// product list
+/// Uniq id
 #[utoipa::path(
     context_path = "/infra/util/uniqid",
     path = "/",
@@ -17,15 +14,16 @@ use rust_wheel::model::user::login_user_info::LoginUserInfo;
     )
 )]
 #[get("/uniqid/gen")]
-pub async fn prod_list(login_user_info: LoginUserInfo) -> impl Responder {
-    let app = query_cached_app(&login_user_info.appId);
-    let goods = query_goods_list(&app.product_id);
-    let resp_goods: Vec<GoodsResp> =  map_entity(goods);
-    return box_actix_rest_response(resp_goods);    
+pub async fn id_gen() -> impl Responder {
+    let id_generator = SnowflakeIdWorker::new(2, 2).unwrap();
+    let uniq_id = id_generator.next_id();
+    if let Err(e) = uniq_id.as_ref() {
+        error!("gen uniq id failed,{}", e);
+    }
+    return box_actix_rest_response(uniq_id.unwrap());
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {
-    let scope = web::scope("/infra/util")
-        .service(prod_list);
+    let scope = web::scope("/infra/util").service(id_gen);
     conf.service(scope);
 }
