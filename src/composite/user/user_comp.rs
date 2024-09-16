@@ -170,7 +170,7 @@ pub fn get_jwt_payload(uid: &i64, did: &String, aid: &String, pid: &i32) -> WebJ
     let u_sub = get_user_sub_expire_time(uid, pid);
     let now = SystemTime::now();
     let exp = now
-        .checked_add(std::time::Duration::new(7200, 0))
+        .checked_add(std::time::Duration::new(14400, 0))
         .expect("Unable to calculate expiration time")
         .duration_since(UNIX_EPOCH)
         .expect("SystemTime before UNIX EPOCH!");

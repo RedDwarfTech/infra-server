@@ -74,11 +74,7 @@ pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder 
     let single_user_opt: Option<User> =
         query_user_by_product_id(&form.0.phone, &app_info.product_id);
     if single_user_opt.is_none() {
-        return box_error_actix_rest_response(
-            "USER_NAME_OR_PWD_INCORRECT",
-            "0030010004".to_owned(),
-            "用户名或密码错误".to_owned(),
-        );
+        return box_err_actix_rest_response(InfraError::LoginInfoNotMatch);
     }
     let single_user = single_user_opt.unwrap();
     let pwd_salt = single_user.salt.clone();
