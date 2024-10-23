@@ -1,3 +1,4 @@
+use crate::model::req::goods::iap_goods_req::IapGoodsReq;
 use crate::model::resp::goods::goods_resp::GoodsResp;
 use crate::service::app::app_service::query_cached_app;
 use crate::service::goods::goods_service::query_goods_list;
@@ -17,15 +18,17 @@ use rust_wheel::model::user::login_user_info::LoginUserInfo;
     )
 )]
 #[get("/list")]
-pub async fn prod_list(login_user_info: LoginUserInfo) -> impl Responder {
+pub async fn prod_list(
+    login_user_info: LoginUserInfo,
+    params: web::Query<IapGoodsReq>,
+) -> impl Responder {
     let app = query_cached_app(&login_user_info.appId);
     let goods = query_goods_list(&app.product_id);
-    let resp_goods: Vec<GoodsResp> =  map_entity(goods);
-    return box_actix_rest_response(resp_goods);    
+    let resp_goods: Vec<GoodsResp> = map_entity(goods);
+    return box_actix_rest_response(resp_goods);
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {
-    let scope = web::scope("/infra/goods")
-        .service(prod_list);
+    let scope = web::scope("/infra/goods").service(prod_list);
     conf.service(scope);
 }

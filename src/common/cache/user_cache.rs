@@ -32,6 +32,7 @@ pub fn store_login_user(payload: &WebJwtPayload, login_user: &User, app_info: &A
         avatar_url: login_user.avatar_url.clone().unwrap_or_default(),
         auto_renew_product_expire_time_ms: 0,
         app_name: app_info.app_name.to_string(),
+        salt: login_user.salt.to_string(),
     };
 
     let serialized_user = serde_json::to_string(&rd_user).unwrap();

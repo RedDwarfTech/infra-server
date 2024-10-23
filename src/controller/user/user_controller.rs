@@ -44,6 +44,7 @@ use rust_wheel::model::error::infra_error::InfraError;
 use rust_wheel::model::response::user::login_response::LoginResponse;
 use rust_wheel::model::user::jwt_auth::create_access_token;
 use rust_wheel::model::user::login_user_info::LoginUserInfo;
+use rust_wheel::model::user::rd_user_info::RdUserInfo;
 use sha256::digest;
 use uuid::Uuid;
 
@@ -205,7 +206,7 @@ pub async fn reg_user(form: actix_web_validator::Json<RegReq>) -> impl Responder
 )]
 #[get("/detail")]
 pub async fn get_inner_user(params: web::Query<UserQueryParams>) -> impl Responder {
-    let cur_user = get_rd_user_by_id(&params.0.id);
+    let cur_user: RdUserInfo = get_rd_user_by_id(&params.0.id);
     return box_actix_rest_response(cur_user);
 }
 
