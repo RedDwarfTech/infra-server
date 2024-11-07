@@ -129,7 +129,7 @@ pub fn get_cached_rd_user(login_user_info: &LoginUserInfo, app: &App) -> RdUserI
     return rd_user;
 }
 
-pub fn do_user_reg(req: &RegReq, app: &App) -> HttpResponse {
+pub fn do_user_reg(req: &RegReq, app: &App, ip: &str) -> HttpResponse {
     if !is_valid_password(&req.password) {
         return box_err_actix_rest_response(InfraError::PwdNitMatchComplexGuide);
     }
@@ -153,6 +153,7 @@ pub fn do_user_reg(req: &RegReq, app: &App) -> HttpResponse {
     reg_u.app_id = app.app_id.clone();
     reg_u.product_id = app.product_id;
     reg_u.country_code = req.country_code.clone();
+    reg_u.register_ip = Some(ip.to_string());
     add_user(&reg_u);
     return box_actix_rest_response("ok");
 }

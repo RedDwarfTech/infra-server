@@ -22,6 +22,7 @@ diesel = { version = "2.2.1", features = [
     "chrono",
     "serde_json",
     "numeric",
+    "ipnet-address"
 ] }
 uuid = { version = "1.4.1", features = [
     "v4",                # Lets you generate random UUIDs
@@ -59,6 +60,7 @@ alibaba-cloud-sdk-rust = { git = "https://github.com/jiangxiaoqiang/alibaba-clou
 gostd = "0.3.18"
 rand = "0.8"
 anyhow = "1.0.86"
+ipnetwork = "0.20"
 
 [profile.release]
 # https://stackoverflow.com/questions/29008127/why-are-rust-executables-so-huge

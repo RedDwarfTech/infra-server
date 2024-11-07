@@ -23,8 +23,8 @@ pub struct User {
     pub created_time: i64,
     pub salt: String,
     pub pwd: String,
-    pub sex: Option<i32>,
-    pub level_type: Option<String>,
+    pub sex: i32,
+    pub level_type: String,
     pub phone_region: Option<String>,
     pub country_code: Option<String>,
     pub user_status: i32,
@@ -36,6 +36,7 @@ pub struct User {
     pub auto_renew_product_expire_time_ms: Option<i64>,
     pub is_guest: i32,
     pub product_id: i32,
+    pub register_ip: Option<String>,
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
@@ -214,8 +215,8 @@ pub struct SmsLog {
     pub updated_time: i64,
     pub text: Option<String>,
     pub template_code: String,
-    pub phone: Option<String>,
-    pub received_at: String,
+    pub phone: String,
+    pub received_at: Option<String>,
     pub request_id: Option<String>,
     pub biz_id: Option<String>,
 }

@@ -27,7 +27,7 @@ use crate::service::oauth::oauth_service::insert_refresh_token;
 use crate::service::user::user_service::{
     change_user_pwd, handle_update_nickname, query_user_by_product_id, reset_user_pwd,
 };
-use actix_web::{get, patch, post, put, web, Responder};
+use actix_web::{get, patch, post, put, web, HttpRequest, Responder};
 use chrono::Local;
 use log::error;
 use rand::Rng;
@@ -189,9 +189,10 @@ pub async fn change_passowrd(
     )
 )]
 #[post("/reg")]
-pub async fn reg_user(form: actix_web_validator::Json<RegReq>) -> impl Responder {
+pub async fn reg_user(req: HttpRequest, form: actix_web_validator::Json<RegReq>) -> impl Responder {
+    let client_ip = req.headers().get("x-texhub-real-ip");
     let app = query_cached_app(&form.0.app_id);
-    return do_user_reg(&form.0, &app);
+    return do_user_reg(&form.0, &app, client_ip.unwrap().to_str().unwrap());
 }
 
 /// Get user

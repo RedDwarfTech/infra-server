@@ -8,6 +8,7 @@ use serde::Deserialize;
 use crate::model::diesel::dolphin::dolphin_schema::*;
 
 use bigdecimal::BigDecimal;
+use ipnetwork::IpNetwork;
 use chrono::DateTime;
 use chrono::offset::Utc;
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
@@ -69,6 +70,13 @@ pub struct IapProduct {
     pub deleted: i32,
     pub amount: i32,
     pub period: i32,
+}
+
+#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[diesel(table_name = "net_test")]
+pub struct NetTest {
+    pub net: IpNetwork,
+    pub id: i64,
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
@@ -156,8 +164,8 @@ pub struct SmsLog {
     pub updated_time: i64,
     pub text: Option<String>,
     pub template_code: String,
-    pub phone: Option<String>,
-    pub received_at: String,
+    pub phone: String,
+    pub received_at: Option<String>,
     pub request_id: Option<String>,
     pub biz_id: Option<String>,
 }
@@ -202,8 +210,8 @@ pub struct User {
     pub created_time: i64,
     pub salt: String,
     pub pwd: String,
-    pub sex: Option<i32>,
-    pub level_type: Option<String>,
+    pub sex: i32,
+    pub level_type: String,
     pub phone_region: Option<String>,
     pub country_code: Option<String>,
     pub user_status: i32,
@@ -215,5 +223,6 @@ pub struct User {
     pub auto_renew_product_expire_time_ms: Option<i64>,
     pub is_guest: i32,
     pub product_id: i32,
+    pub register_ip: Option<IpNetwork>,
 }
 

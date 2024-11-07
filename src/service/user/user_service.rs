@@ -28,6 +28,19 @@ pub fn query_user_by_product_id(user_phone: &String, prod_id: &i32) -> Option<Us
     return db_user;
 }
 
+pub fn query_user_count_by_ip(user_phone: &String, prod_id: &i32) -> Option<User> {
+    use crate::model::diesel::dolphin::dolphin_schema::users::dsl::*;
+    let predicate = crate::model::diesel::dolphin::dolphin_schema::users::phone
+        .eq(user_phone.clone())
+        .and(crate::model::diesel::dolphin::dolphin_schema::users::product_id.eq(prod_id.clone()));
+    let db_user = users
+        .filter(&predicate)
+        .limit(1)
+        .first::<User>(&mut get_conn())
+        .ok();
+    return db_user;
+}
+
 pub fn query_user_by_id(u_id: &i64) -> User {
     use crate::model::diesel::dolphin::dolphin_schema::users::dsl::*;
     let predicate = crate::model::diesel::dolphin::dolphin_schema::users::id.eq(u_id);
