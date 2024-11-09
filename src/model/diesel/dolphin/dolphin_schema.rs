@@ -60,13 +60,6 @@ table! {
 }
 
 table! {
-    net_test (id) {
-        net -> Inet,
-        id -> Int8,
-    }
-}
-
-table! {
     oauth2_refresh_token (id) {
         id -> Int8,
         refresh_token -> Varchar,
@@ -190,7 +183,7 @@ table! {
     users (id) {
         id -> Int8,
         nickname -> Varchar,
-        avatar_url -> Nullable<Varchar>,
+        avatar_url -> Varchar,
         phone -> Varchar,
         updated_time -> Int8,
         created_time -> Int8,
@@ -198,8 +191,8 @@ table! {
         pwd -> Varchar,
         sex -> Int4,
         level_type -> Varchar,
-        phone_region -> Nullable<Varchar>,
-        country_code -> Nullable<Varchar>,
+        phone_region -> Varchar,
+        country_code -> Varchar,
         user_status -> Int4,
         last_login_time -> Nullable<Int8>,
         first_login_time -> Nullable<Int8>,
@@ -209,7 +202,8 @@ table! {
         auto_renew_product_expire_time_ms -> Nullable<Int8>,
         is_guest -> Int4,
         product_id -> Int4,
-        register_ip -> Nullable<Varchar>,
+        register_ip -> Varchar,
+        reg_ip -> Nullable<Inet>,
     }
 }
 
@@ -217,7 +211,6 @@ allow_tables_to_appear_in_same_query!(
     app_map,
     apps,
     iap_product,
-    net_test,
     oauth2_refresh_token,
     order_items,
     orders,

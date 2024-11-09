@@ -16,13 +16,13 @@ rust_wheel = { git = "https://github.com/RedDwarfTech/rust_wheel.git", features 
     "alipay",
 ] }
 validator = { version = "0.16.1", features = ["derive"] }
-diesel = { version = "2.2.1", features = [
+diesel = { version = "2.2.4", features = [
     "postgres",
     "64-column-tables",
     "chrono",
     "serde_json",
     "numeric",
-    "ipnet-address"
+    "network-address"
 ] }
 uuid = { version = "1.4.1", features = [
     "v4",                # Lets you generate random UUIDs

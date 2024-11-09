@@ -1,6 +1,7 @@
 use serde::Serialize;
 use serde::Deserialize;
 use crate::model::diesel::dolphin::dolphin_schema::*;
+use ipnetwork::IpNetwork;
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
 #[diesel(table_name = users)]
@@ -25,5 +26,6 @@ pub struct UserAdd {
     pub auto_renew_product_expire_time_ms: Option<i64>,
     pub is_guest: i32,
     pub product_id: i32,
-    pub register_ip: Option<String>,
+    pub register_ip: String,
+    pub reg_ip: Option<IpNetwork>,
 }

@@ -29,7 +29,7 @@ pub fn store_login_user(payload: &WebJwtPayload, login_user: &User, app_info: &A
         nickname: login_user.nickname.to_string(),
         device_id: payload.deviceId.to_string(),
         app_id: payload.appId.to_string(),
-        avatar_url: login_user.avatar_url.clone().unwrap_or_default(),
+        avatar_url: login_user.avatar_url.clone(),
         auto_renew_product_expire_time_ms: 0,
         app_name: app_info.app_name.to_string(),
         salt: login_user.salt.to_string(),

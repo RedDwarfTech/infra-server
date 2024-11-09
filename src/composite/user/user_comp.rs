@@ -1,4 +1,7 @@
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{
+    str::FromStr,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use crate::{
     common::cache::user_cache::{
@@ -23,6 +26,7 @@ use crate::{
 };
 use actix_web::HttpResponse;
 use fancy_regex::Regex;
+use ipnetwork::IpNetwork;
 use rust_wheel::{
     common::{
         util::{
@@ -57,7 +61,7 @@ pub fn get_rd_user_by_id(uid: &i64) -> RdUserInfo {
         nickname: u_info.nickname,
         device_id: "".to_string(),
         app_id: u_info.app_id,
-        avatar_url: u_info.avatar_url.unwrap_or_default(),
+        avatar_url: u_info.avatar_url,
         auto_renew_product_expire_time_ms: if u_sub.is_some() {
             u_sub.unwrap().sub_end_time
         } else {
@@ -117,7 +121,7 @@ pub fn get_cached_rd_user(login_user_info: &LoginUserInfo, app: &App) -> RdUserI
         nickname: u_info.nickname,
         device_id: login_user_info.deviceId.to_string(),
         app_id: u_info.app_id,
-        avatar_url: u_info.avatar_url.unwrap_or_default(),
+        avatar_url: u_info.avatar_url,
         auto_renew_product_expire_time_ms: if u_sub.is_some() {
             u_sub.unwrap().sub_end_time
         } else {
@@ -153,7 +157,9 @@ pub fn do_user_reg(req: &RegReq, app: &App, ip: &str) -> HttpResponse {
     reg_u.app_id = app.app_id.clone();
     reg_u.product_id = app.product_id;
     reg_u.country_code = req.country_code.clone();
-    reg_u.register_ip = Some(ip.to_string());
+    reg_u.register_ip = ip.to_string();
+    let ip_network = IpNetwork::from_str(&ip).unwrap();
+    reg_u.reg_ip = Some(ip_network);
     reg_u.created_time = get_current_millisecond();
     reg_u.updated_time = get_current_millisecond();
     add_user(&reg_u);

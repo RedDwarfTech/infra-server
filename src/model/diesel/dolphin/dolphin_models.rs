@@ -73,13 +73,6 @@ pub struct IapProduct {
 }
 
 #[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
-#[diesel(table_name = "net_test")]
-pub struct NetTest {
-    pub net: IpNetwork,
-    pub id: i64,
-}
-
-#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
 #[diesel(table_name = "oauth2_refresh_token")]
 pub struct Oauth2RefreshToken {
     pub id: i64,
@@ -204,7 +197,7 @@ pub struct UserSub {
 pub struct User {
     pub id: i64,
     pub nickname: String,
-    pub avatar_url: Option<String>,
+    pub avatar_url: String,
     pub phone: String,
     pub updated_time: i64,
     pub created_time: i64,
@@ -212,8 +205,8 @@ pub struct User {
     pub pwd: String,
     pub sex: i32,
     pub level_type: String,
-    pub phone_region: Option<String>,
-    pub country_code: Option<String>,
+    pub phone_region: String,
+    pub country_code: String,
     pub user_status: i32,
     pub last_login_time: Option<i64>,
     pub first_login_time: Option<i64>,
@@ -223,6 +216,7 @@ pub struct User {
     pub auto_renew_product_expire_time_ms: Option<i64>,
     pub is_guest: i32,
     pub product_id: i32,
-    pub register_ip: Option<IpNetwork>,
+    pub register_ip: String,
+    pub reg_ip: Option<IpNetwork>,
 }
 
