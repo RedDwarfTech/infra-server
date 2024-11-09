@@ -154,6 +154,8 @@ pub fn do_user_reg(req: &RegReq, app: &App, ip: &str) -> HttpResponse {
     reg_u.product_id = app.product_id;
     reg_u.country_code = req.country_code.clone();
     reg_u.register_ip = Some(ip.to_string());
+    reg_u.created_time = get_current_millisecond();
+    reg_u.updated_time = get_current_millisecond();
     add_user(&reg_u);
     return box_actix_rest_response("ok");
 }

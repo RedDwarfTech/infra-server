@@ -4,5 +4,5 @@ use validator::Validate;
 #[allow(non_snake_case)]
 pub struct IapGoodsReq {
     pub productId: i64,
-    lang: Option<i32>
+    _lang: Option<i32>
 }

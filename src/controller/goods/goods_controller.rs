@@ -20,7 +20,7 @@ use rust_wheel::model::user::login_user_info::LoginUserInfo;
 #[get("/list")]
 pub async fn prod_list(
     login_user_info: LoginUserInfo,
-    params: web::Query<IapGoodsReq>,
+    _params: web::Query<IapGoodsReq>,
 ) -> impl Responder {
     let app = query_cached_app(&login_user_info.appId);
     let goods = query_goods_list(&app.product_id);
