@@ -51,4 +51,4 @@ jobs:
       with:
         config: ${{ secrets.KUBE_CONFIG_DATA }}
         version: v1.21.0
-        command: rollout status deployment/infra-server-service -n reddwarf-pro
+        command: rollout status statefulset/infra-server-service -n reddwarf-pro
