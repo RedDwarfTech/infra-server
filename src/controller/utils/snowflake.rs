@@ -1,37 +1,39 @@
+use anyhow::{Error, Result};
+use bigdecimal::ToPrimitive;
 use std::sync::{Arc, Mutex};
-use anyhow::{Result, Error};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 // 开始时间戳（2022-08-01）
-const TWEPOCH: u128 = 1659283200000;
+const TWEPOCH: i64 = 1659283200000;
 // 机器id所占的位数
-const WORKER_ID_BITS: u128 = 5;
+const WORKER_ID_BITS: i64 = 5;
 // 数据节点所占的位数
-const DATA_CENTER_ID_BITS: u128 = 5;
+const DATA_CENTER_ID_BITS: i64 = 5;
 // 支持最大的机器ID，最大是31
-const MAX_WORKER_ID: u128 = (-1 ^ (-1 << WORKER_ID_BITS)) as u128;
+const MAX_WORKER_ID: i64 = (-1 ^ (-1 << WORKER_ID_BITS)) as i64;
 // 支持的最大数据节点ID，结果是31
-const MAX_DATA_CENTER_ID: u128 = (-1 ^ (-1 << DATA_CENTER_ID_BITS)) as u128;
+const MAX_DATA_CENTER_ID: i64 = (-1 ^ (-1 << DATA_CENTER_ID_BITS)) as i64;
 // 序列号所占的位数
-const SEQUENCE_BITS: u128 = 12;
+const SEQUENCE_BITS: i64 = 12;
 // 工作节点标识ID向左移12位
-const WORKER_ID_SHIFT: u128 = SEQUENCE_BITS;
+const WORKER_ID_SHIFT: i64 = SEQUENCE_BITS;
 // 数据节点标识ID向左移动17位（12位序列号+5位工作节点）
-const DATA_CENTER_ID_SHIFT: u128 = SEQUENCE_BITS + WORKER_ID_BITS;
+const DATA_CENTER_ID_SHIFT: i64 = SEQUENCE_BITS + WORKER_ID_BITS;
 // 时间戳向左移动22位（12位序列号+5位工作节点+5位数据节点）
-const TIMESTAMP_LEFT_SHIFT: u128 = SEQUENCE_BITS + WORKER_ID_BITS + DATA_CENTER_ID_BITS;
+const TIMESTAMP_LEFT_SHIFT: i64 = SEQUENCE_BITS + WORKER_ID_BITS + DATA_CENTER_ID_BITS;
 // 生成的序列掩码，这里是4095
-const SEQUENCE_MASK: u128 = (-1 ^ (-1 << SEQUENCE_BITS)) as u128;
+const SEQUENCE_MASK: i64 = (-1 ^ (-1 << SEQUENCE_BITS)) as i64;
 
 #[derive(Clone)]
 pub struct SnowflakeIdWorker(Arc<Mutex<SnowflakeIdWorkerInner>>);
 impl SnowflakeIdWorker {
-    pub fn new(worker_id: u128, data_center_id: u128) -> Result<SnowflakeIdWorker> {
-        Ok(
-            Self(Arc::new(Mutex::new(SnowflakeIdWorkerInner::new(worker_id, data_center_id)?)))
-        )
+    pub fn new(worker_id: i64, data_center_id: i64) -> Result<SnowflakeIdWorker> {
+        Ok(Self(Arc::new(Mutex::new(SnowflakeIdWorkerInner::new(
+            worker_id,
+            data_center_id,
+        )?))))
     }
-    pub fn next_id(&self) -> Result<u128> {
+    pub fn next_id(&self) -> Result<i64> {
         let mut inner = self.0.lock().map_err(|e| Error::msg(e.to_string()))?;
         inner.next_id()
     }
@@ -40,24 +42,30 @@ impl SnowflakeIdWorker {
 // 这是一个内部结构体，只在这个mod里面使用
 struct SnowflakeIdWorkerInner {
     // 工作节点ID
-    worker_id: u128,
+    worker_id: i64,
     // 数据节点ID
-    data_center_id: u128,
+    data_center_id: i64,
     // 序列号
-    sequence: u128,
+    sequence: i64,
     // 上一次时间戳
-    last_timestamp: u128,
+    last_timestamp: i64,
 }
 
 impl SnowflakeIdWorkerInner {
-    fn new(worker_id: u128, data_center_id: u128) -> Result<SnowflakeIdWorkerInner> {
+    fn new(worker_id: i64, data_center_id: i64) -> Result<SnowflakeIdWorkerInner> {
         // 校验worker_id合法性
         if worker_id > MAX_WORKER_ID {
-            return Err(Error::msg(format!("workerId:{} must be less than {}", worker_id, MAX_WORKER_ID)));
+            return Err(Error::msg(format!(
+                "workerId:{} must be less than {}",
+                worker_id, MAX_WORKER_ID
+            )));
         }
         // 校验data_center_id合法性
         if data_center_id > MAX_DATA_CENTER_ID {
-            return Err(Error::msg(format!("datacenterId:{} must be less than {}", data_center_id, MAX_DATA_CENTER_ID)));
+            return Err(Error::msg(format!(
+                "datacenterId:{} must be less than {}",
+                data_center_id, MAX_DATA_CENTER_ID
+            )));
         }
         // 创建SnowflakeIdWorkerInner对象
         Ok(SnowflakeIdWorkerInner {
@@ -68,12 +76,15 @@ impl SnowflakeIdWorkerInner {
         })
     }
     // 获取下一个id
-    fn next_id(&mut self) -> Result<u128> {
+    fn next_id(&mut self) -> Result<i64> {
         // 获取当前时间戳
         let mut timestamp = Self::get_time()?;
         // 如果当前时间戳小于上一次的时间戳，那么跑异常
         if timestamp < self.last_timestamp {
-            return Err(Error::msg(format!("Clock moved backwards.  Refusing to generate id for {} milliseconds", self.last_timestamp - timestamp)));
+            return Err(Error::msg(format!(
+                "Clock moved backwards.  Refusing to generate id for {} milliseconds",
+                self.last_timestamp - timestamp
+            )));
         }
         // 如果当前时间戳等于上一次的时间戳，那么计算出序列号目前是第几位
         if timestamp == self.last_timestamp {
@@ -95,7 +106,7 @@ impl SnowflakeIdWorkerInner {
             | self.sequence)
     }
     // 计算一个大于上一次时间戳的时间戳
-    fn til_next_mills(last_timestamp: u128) -> Result<u128> {
+    fn til_next_mills(last_timestamp: i64) -> Result<i64> {
         // 获取当前时间戳
         let mut timestamp = Self::get_time()?;
         // 如果当前时间戳一直小于上次时间戳，那么一直循环获取，直至当前时间戳大于上次获取的时间戳
@@ -106,14 +117,10 @@ impl SnowflakeIdWorkerInner {
         Ok(timestamp)
     }
     // 获取当前时间戳
-    fn get_time() -> Result<u128> {
+    fn get_time() -> Result<i64> {
         match SystemTime::now().duration_since(UNIX_EPOCH) {
-            Ok(s) => {
-                Ok(s.as_millis())
-            }
-            Err(_) => {
-                Err(Error::msg("get_time error!"))
-            }
+            Ok(s) => Ok(s.as_millis().to_i64().unwrap()),
+            Err(_) => Err(Error::msg("get_time error!")),
         }
     }
 }

@@ -158,6 +158,7 @@ pub fn do_user_reg(req: &RegReq, app: &App, ip: &str) -> HttpResponse {
     reg_u.product_id = app.product_id;
     reg_u.country_code = req.country_code.clone();
     reg_u.register_ip = ip.to_string();
+    // https://stackoverflow.com/questions/79162997/the-trait-dieselexpression-is-not-implemented-for-ipnetwork-which-is-requ
     let ip_network = IpNetwork::from_str(&ip).unwrap();
     reg_u.reg_ip = Some(ip_network);
     reg_u.created_time = get_current_millisecond();
