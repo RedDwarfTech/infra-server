@@ -7,13 +7,13 @@ use rust_wheel::common::wrapper::actix_http_resp::box_actix_rest_response;
 ///
 /// Uniq id
 #[utoipa::path(
-    context_path = "/infra-inner/util/uniqid",
+    context_path = "/infra-inner/util/uniqid/gen",
     path = "/",
     responses(
-        (status = 200, description = "get product list")
+        (status = 200, description = "get uniq id")
     )
 )]
-#[get("/gen")]
+#[get("/uniqid/gen")]
 pub async fn id_gen() -> impl Responder {
     let id_generator = SnowflakeIdWorker::new(2, 2).unwrap();
     let uniq_id = id_generator.next_id();
