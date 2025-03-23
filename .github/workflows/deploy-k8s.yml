@@ -43,9 +43,9 @@ jobs:
       uses: steebchen/kubectl@v2.0.0
       with: 
         config: ${{ secrets.KUBE_CONFIG_DATA }}
-        command: set image --record deployment/infra-server-service infra-server-service=${{ secrets.ALI_DOCKER_HUB_REGISTRY }}/reddwarf-pro/infra-server:${{ github.sha }} -n reddwarf-pro
+        command: set image --record statefulset/infra-server-service infra-server-service=${{ secrets.ALI_DOCKER_HUB_REGISTRY }}/reddwarf-pro/infra-server:${{ github.sha }} -n reddwarf-pro
 
-    - name: verify deployment
+    - name: verify statefulset
       uses: steebchen/kubectl@v2.0.0
       timeout-minutes: 3
       with:
