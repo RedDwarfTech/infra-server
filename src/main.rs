@@ -24,6 +24,7 @@ use controller::pay::alipay::alipay_controller;
 use controller::pay::alipay::alipay_notify_controller;
 use controller::pay::paypal::paypal_controller;
 use controller::user::auth_controller;
+use controller::utils::id_controller;
 use lazy_static::lazy_static;
 use rust_wheel::config::app::app_conf_reader::get_app_config;
 use utoipa::OpenApi;
@@ -53,6 +54,7 @@ async fn main() -> std::io::Result<()> {
             .configure(paypal_controller::config)
             .configure(alipay_notify_controller::config)
             .configure(order_controller::config)
+            .configure(id_controller::config)
             .service(
                 SwaggerUi::new("/docs-v1/{_:.*}").url("/api-docs/openapi.json", ApiDoc::openapi()),
             )
