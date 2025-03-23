@@ -5,14 +5,14 @@
 
 use std::fmt::Display;
 
-use serde::Serialize;
-use serde::Deserialize;
 use crate::model::diesel::dolphin::dolphin_schema::*;
 use bigdecimal::BigDecimal;
-use chrono::DateTime;
 use chrono::offset::Utc;
+use chrono::DateTime;
 use ipnetwork::IpNetwork;
-#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+use serde::Deserialize;
+use serde::Serialize;
+#[derive(Insertable, Queryable, QueryableByName, Debug, Serialize, Deserialize, Default, Clone)]
 #[diesel(table_name = users)]
 pub struct User {
     pub id: i64,
@@ -37,10 +37,11 @@ pub struct User {
     pub is_guest: i32,
     pub product_id: i32,
     pub register_ip: String,
+    #[serde(skip_serializing, skip_deserializing)]
     pub reg_ip: Option<IpNetwork>,
 }
 
-#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[derive(Insertable, Queryable, QueryableByName, Debug, Serialize, Deserialize, Default, Clone)]
 #[diesel(table_name = apps)]
 pub struct App {
     pub id: i32,
@@ -58,7 +59,7 @@ pub struct App {
     pub product_id: i32,
 }
 
-#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[derive(Insertable, Queryable, QueryableByName, Debug, Serialize, Deserialize, Default, Clone)]
 #[diesel(table_name = oauth2_refresh_token)]
 pub struct Oauth2RefreshToken {
     pub id: i64,
@@ -76,7 +77,7 @@ pub struct Oauth2RefreshToken {
     pub app_id: String,
 }
 
-#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[derive(Insertable, Queryable, QueryableByName, Debug, Serialize, Deserialize, Default, Clone)]
 #[diesel(table_name = iap_product)]
 pub struct IapProduct {
     pub id: i64,
@@ -98,7 +99,7 @@ pub struct IapProduct {
     pub period: i32,
 }
 
-#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[derive(Insertable, Queryable, QueryableByName, Debug, Serialize, Deserialize, Default, Clone)]
 #[diesel(table_name = app_map)]
 pub struct AppMap {
     pub id: i64,
@@ -117,10 +118,10 @@ pub struct AppMap {
     pub app_secret: Option<String>,
     pub app_private_key_pkcs1: String,
     pub app_public_key_pkcs1: String,
-    pub alipay_public_key: String
+    pub alipay_public_key: String,
 }
 
-#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[derive(Insertable, Queryable, QueryableByName, Debug, Serialize, Deserialize, Default, Clone)]
 #[diesel(table_name = orders)]
 pub struct Order {
     pub id: i64,
@@ -141,7 +142,7 @@ pub struct Order {
     pub paied_amount: i64,
 }
 
-#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[derive(Insertable, Queryable, QueryableByName, Debug, Serialize, Deserialize, Default, Clone)]
 #[diesel(table_name = order_items)]
 pub struct OrderItem {
     pub order_id: String,
@@ -153,7 +154,7 @@ pub struct OrderItem {
     pub id: i64,
 }
 
-#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[derive(Insertable, Queryable, QueryableByName, Debug, Serialize, Deserialize, Default, Clone)]
 #[diesel(table_name = user_sub)]
 pub struct UserSub {
     pub id: i64,
@@ -171,7 +172,7 @@ pub struct UserSub {
     pub sub_end: DateTime<Utc>,
 }
 
-#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[derive(Insertable, Queryable, QueryableByName, Debug, Serialize, Deserialize, Default, Clone)]
 #[diesel(table_name = payments)]
 pub struct Payment {
     pub id: i64,
@@ -183,7 +184,7 @@ pub struct Payment {
     pub updated_time: i64,
 }
 
-#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[derive(Insertable, Queryable, QueryableByName, Debug, Serialize, Deserialize, Default, Clone)]
 #[diesel(table_name = sms_config)]
 pub struct SmsConfig {
     pub id: i64,
@@ -196,7 +197,7 @@ pub struct SmsConfig {
     pub app_id: String,
 }
 
-#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[derive(Insertable, Queryable, QueryableByName, Debug, Serialize, Deserialize, Default, Clone)]
 #[diesel(table_name = sms_template)]
 pub struct SmsTemplate {
     pub id: i64,
@@ -207,7 +208,7 @@ pub struct SmsTemplate {
     pub app_id: String,
 }
 
-#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[derive(Insertable, Queryable, QueryableByName, Debug, Serialize, Deserialize, Default, Clone)]
 #[diesel(table_name = sms_log)]
 pub struct SmsLog {
     pub id: i64,

@@ -3,7 +3,7 @@ use serde::Deserialize;
 use crate::model::diesel::dolphin::dolphin_schema::*;
 use ipnetwork::IpNetwork;
 
-#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize,Deserialize,Default,Clone)]
+#[derive(Insertable,Queryable,QueryableByName,Debug,Serialize, Deserialize,Default,Clone)]
 #[diesel(table_name = users)]
 pub struct UserAdd {
     pub nickname: String,
@@ -27,5 +27,6 @@ pub struct UserAdd {
     pub is_guest: i32,
     pub product_id: i32,
     pub register_ip: String,
+    #[serde(skip_serializing, skip_deserializing)]
     pub reg_ip: Option<IpNetwork>,
 }
