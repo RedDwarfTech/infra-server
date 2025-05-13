@@ -1,4 +1,3 @@
-use crate::model::req::goods::iap_goods_req::IapGoodsReq;
 use crate::model::resp::goods::goods_resp::GoodsResp;
 use crate::service::app::app_service::query_cached_app;
 use crate::service::goods::goods_service::query_goods_list;
@@ -20,7 +19,6 @@ use rust_wheel::model::user::login_user_info::LoginUserInfo;
 #[get("/list")]
 pub async fn prod_list(
     login_user_info: LoginUserInfo,
-    _params: web::Query<IapGoodsReq>,
 ) -> impl Responder {
     let app = query_cached_app(&login_user_info.appId);
     let goods = query_goods_list(&app.product_id);
