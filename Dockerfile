@@ -5,7 +5,7 @@ FROM ${BASE_IMAGE} AS builder
 ADD --chown=rust:rust . ./
 RUN cargo build --release
 
-FROM alpine:3.19
+FROM alpine:3.22.1
 LABEL maintainer="jiangtingqiang@gmail.com"
 WORKDIR /app
 ENV ROCKET_ADDRESS=0.0.0.0
