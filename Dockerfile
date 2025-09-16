@@ -1,6 +1,7 @@
 # build in China mainland 
 # ARG BASE_IMAGE=dolphinjiang/rust-musl-builder:1.78.0
-ARG BASE_IMAGE=dolphinjiang/rust-musl-builder:1.82.0
+# ARG BASE_IMAGE=dolphinjiang/rust-musl-builder:1.84.0
+ARG BASE_IMAGE=dolphinjiang/rust-musl-builder:1.84.0
 FROM ${BASE_IMAGE} AS builder
 ADD --chown=rust:rust . ./
 RUN cargo build --release
