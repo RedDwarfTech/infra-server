@@ -26,6 +26,7 @@ use labrador::{serde_urlencoded::to_string, AlipayNotifyResponse};
 #[post("/v1/alipaySeverNotification")]
 pub async fn alipay_server_notify(form: web::Form<AlipayNotifyResponse>) -> impl Responder {
     let query_string = to_string(&form.0).unwrap();
+    warn!("alipay notify callback, query_string: {}", query_string);
     handle_pay_callback(&query_string);
     return HttpResponse::Ok().body("failed");
 }
