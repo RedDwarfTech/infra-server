@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 serde = { version = "1.0.64", features = ["derive"] }
 serde_json = "1.0.64"
+futures = "0.3"
 actix-web = "4"
 actix-web-validator = "5.0.1"
 rust_wheel = { git = "https://github.com/RedDwarfTech/rust_wheel.git", features = [
@@ -44,6 +45,7 @@ lazy_static = "1.4.0"
 bigdecimal = { version = "0.4", features = ["serde"] }
 labrador = { git = "https://github.com/jiangxiaoqiang/labrador.git", features = [
     "alipay",
+    "wechat",
 ] }
 rustflake = "0.1.1"
 serde_qs = "0.13"

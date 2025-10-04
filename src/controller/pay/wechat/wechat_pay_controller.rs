@@ -1,5 +1,5 @@
 use crate::{
-    composite::pay::wechat::wechat_pay_impl::do_wechat_pay, model::req::goods::goods_req::GoodsReq,
+    composite::pay::wechat::wechat_pay_impl::prepare_pay, model::req::goods::goods_req::GoodsReq,
     service::goods::goods_service::query_goods_by_id,
 };
 use actix_web::{post, web, Responder};
@@ -24,8 +24,8 @@ pub async fn create_order(
     login_user_info: LoginUserInfo,
 ) -> impl Responder {
     let good = query_goods_by_id(&form.0.productId);
-    do_wechat_pay(&login_user_info, &good).await;
-    return box_actix_rest_response("ok");
+    let order_resp = prepare_pay(&login_user_info, &good);
+    return box_actix_rest_response(order_resp);
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {
