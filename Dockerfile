@@ -1,5 +1,4 @@
-# build in China mainland 
-# ARG BASE_IMAGE=dolphinjiang/rust-musl-builder:1.84.0
+# build in China mainland
 ARG BASE_IMAGE=dolphinjiang/rust-musl-builder:1.86.0
 FROM ${BASE_IMAGE} AS builder
 ADD --chown=rust:rust . ./
