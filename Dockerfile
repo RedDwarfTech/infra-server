@@ -2,6 +2,11 @@
 ARG BASE_IMAGE=dolphinjiang/rust-musl-builder:1.86.0
 FROM ${BASE_IMAGE} AS builder
 ADD --chown=rust:rust . ./
+RUN sudo apk add --no-cache \
+    postgresql-dev \
+    krb5-dev \
+    openldap-dev \
+    openssl-dev
 RUN cargo build --release
 
 FROM alpine:3.22.1
