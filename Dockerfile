@@ -2,7 +2,7 @@
 ARG BASE_IMAGE=dolphinjiang/rust-musl-builder:1.86.0
 FROM ${BASE_IMAGE} AS builder
 ADD --chown=rust:rust . ./
-RUN apt-get update && apt-get install -y \
+RUN sudo apt-get update && sudo apt-get install -y \
     postgresql-server-dev-all \
     libpq-dev \
     krb5-multidev \
