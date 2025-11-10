@@ -9,8 +9,7 @@ RUN apt-get update && apt-get install -y \
     libldap2-dev \
     libssl-dev \
     pkg-config \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+    build-essential
 RUN cargo build --release
 
 FROM alpine:3.22.1
