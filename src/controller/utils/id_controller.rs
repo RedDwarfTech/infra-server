@@ -2,6 +2,7 @@ use crate::controller::utils::snowflake::SnowflakeIdWorker;
 use actix_web::{get, web, Responder};
 use log::error;
 use rust_wheel::common::wrapper::actix_http_resp::box_actix_rest_response;
+use rust_wheel::config::app::app_conf_reader::get_app_config;
 
 /// Get uniq id
 ///
