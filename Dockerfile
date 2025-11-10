@@ -2,7 +2,7 @@
 ARG BASE_IMAGE=dolphinjiang/rust-musl-builder:1.86.0
 FROM ${BASE_IMAGE} AS builder
 ADD --chown=rust:rust . ./
-RUN sudo apk add --no-cache \
+RUN sudo apt-get install \
     postgresql-dev \
     krb5-dev \
     openldap-dev \
