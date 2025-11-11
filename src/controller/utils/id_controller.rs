@@ -2,7 +2,6 @@ use crate::controller::utils::snowflake::SnowflakeIdWorker;
 use actix_web::{get, web, Responder};
 use log::error;
 use rust_wheel::common::wrapper::actix_http_resp::box_actix_rest_response;
-use rust_wheel::config::app::app_conf_reader::get_app_config;
 
 /// Get uniq id
 ///
@@ -17,7 +16,6 @@ use rust_wheel::config::app::app_conf_reader::get_app_config;
 #[get("/uniqid/gen")]
 pub async fn id_gen() -> impl Responder {
     // parse the worker_id and data_center_id from kubernetes statefulset pod name
-    let statefulset_service_name = get_app_config("infra.infra_service_name");
     let hostname = std::env::var("HOSTNAME").unwrap_or_default();
     
     // Extract index from hostname (format: {statefulset-name}-{index})
