@@ -25,6 +25,8 @@ diesel = { version = "2.2.12", features = [
     "numeric",
     "network-address"
 ] }
+pq-sys = { version = "0.7.5", features = ["bundled"] }
+openssl-sys = { version = "0.9.109", features = ["vendored"] }
 uuid = { version = "1.4.1", features = [
     "v4",                # Lets you generate random UUIDs
     "fast-rng",          # Use a faster (but still sufficiently random) RNG
