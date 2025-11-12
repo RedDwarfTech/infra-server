@@ -1,15 +1,7 @@
 # build in China mainland
-ARG BASE_IMAGE=dolphinjiang/rust-musl-builder:1.86.0
+ARG BASE_IMAGE=dolphinjiang/rust-musl-builder:1.91.0
 FROM ${BASE_IMAGE} AS builder
 ADD --chown=rust:rust . ./
-RUN sudo apt-get update && sudo apt-get install -y \
-    postgresql-server-dev-all \
-    libpq-dev \
-    krb5-multidev \
-    libldap2-dev \
-    libssl-dev \
-    pkg-config \
-    build-essential
 RUN cargo build --release
 
 FROM alpine:3.22.1

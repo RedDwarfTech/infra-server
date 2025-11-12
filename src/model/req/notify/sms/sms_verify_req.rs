@@ -1,6 +1,7 @@
+use utoipa::ToSchema;
 use validator::Validate;
 
-#[derive(serde::Deserialize, Validate, Debug)]
+#[derive(serde::Deserialize, Validate, Debug, ToSchema)]
 #[allow(non_snake_case)]
 pub struct SmsVerifyReq {
     #[validate(length(min = 1, max = 64))]

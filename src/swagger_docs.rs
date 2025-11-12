@@ -21,9 +21,6 @@ use crate::controller::user::auth_controller;
     components(
         schemas(
             utoipa::TupleUnit,
-            types::GenericPostRequest,
-            types::GenericPostResponse,
-            types::GenericStringResponse,
             types::PostRequest,
             types::PostResponse,
         )

@@ -1,6 +1,7 @@
+use utoipa::ToSchema;
 use validator::Validate;
 
-#[derive(serde::Deserialize, Validate)]
+#[derive(serde::Deserialize, Validate, ToSchema)]
 pub struct ChangePwdReq {
     #[validate(length(min=1))]
     #[serde(rename = "oldPassword")]

@@ -1,6 +1,7 @@
 use validator::Validate;
+use utoipa::ToSchema;
 
-#[derive(serde::Deserialize, Validate)]
+#[derive(serde::Deserialize, Validate, ToSchema)]
 pub struct LoginReq {
     #[validate(length(min = 1))]
     pub phone: String,

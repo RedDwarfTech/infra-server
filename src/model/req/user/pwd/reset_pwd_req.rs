@@ -1,6 +1,7 @@
+use utoipa::ToSchema;
 use validator::Validate;
 
-#[derive(serde::Deserialize, Validate, Debug)]
+#[derive(serde::Deserialize, Validate, Debug, ToSchema)]
 pub struct ResetPwdReq {
     #[validate(length(min=1))]
     #[serde(rename = "appId")]
