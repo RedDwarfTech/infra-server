@@ -1,7 +1,5 @@
-use std::{
-    str::FromStr,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::str::FromStr;
+use chrono::{Utc, Duration};
 
 use crate::{
     common::cache::user_cache::{
@@ -180,13 +178,11 @@ pub fn is_valid_password(password: &str) -> bool {
 
 pub fn get_jwt_payload(uid: &i64, did: &String, aid: &String, pid: &i32) -> WebJwtPayload {
     let u_sub = get_user_sub_expire_time(uid, pid);
-    let now = SystemTime::now();
-    let exp = now
-        .checked_add(std::time::Duration::new(14400, 0))
-        .expect("Unable to calculate expiration time")
-        .duration_since(UNIX_EPOCH)
-        .expect("SystemTime before UNIX EPOCH!");
-    let exp_timestamp = exp.as_secs() as usize;
+
+    // Use chrono::Utc to get a clear UTC-based expiration timestamp.
+    // Set expiry to now + 14400 seconds (4 hours).
+    let exp_timestamp = (Utc::now() + Duration::seconds(14400)).timestamp() as usize;
+
     let jwt_payload = WebJwtPayload {
         userId: uid.to_owned(),
         deviceId: did.to_owned(),
