@@ -12,7 +12,7 @@ use crate::{
 };
 use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
 use jsonwebtoken::errors::ErrorKind;
-use log::error;
+use log::{error, warn};
 use rust_wheel::{
     common::wrapper::actix_http_resp::{box_actix_rest_response, box_err_actix_rest_response},
     model::{
@@ -83,6 +83,9 @@ pub async fn refresh_access_token(
 pub async fn verify_access_token(req: HttpRequest) -> impl Responder {
     let forward_url = get_forward_url_path(&req);
     if forward_url.is_some() {
+        if forward_url.unwrap().contains("access-token") {
+            warn!("Skipping auth for access-token endpoint,{}, vec:{}", forward_url.unwrap(),VEC.join(","));
+        }
         if VEC.contains(&forward_url.unwrap().to_string()) {
             return box_actix_rest_response("ok");
         }
