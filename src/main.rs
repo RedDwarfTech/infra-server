@@ -20,6 +20,7 @@ use actix_web::HttpServer;
 use controller::goods::goods_controller;
 use controller::monitor::health_controller;
 use controller::order::order_controller;
+use controller::order::auto_expire;
 use controller::pay::alipay::alipay_controller;
 use controller::pay::alipay::alipay_notify_controller;
 use controller::pay::paypal::paypal_controller;
@@ -44,7 +45,7 @@ async fn main() -> std::io::Result<()> {
     log4rs::init_file("log4rs.yaml", Default::default()).unwrap();
     let port: u16 = get_app_config("infra.port").parse().unwrap();
     let address = ("0.0.0.0", port);
-    HttpServer::new(|| {
+    let server = HttpServer::new(|| {
         App::new()
             .configure(user_controller::config)
             .configure(health_controller::config)
@@ -61,7 +62,10 @@ async fn main() -> std::io::Result<()> {
             .service(RapiDoc::new("/api-docs/openapi.json").path("/rapidoc"))
     })
     .workers(3)
-    .bind(address)?
-    .run()
-    .await
+    .bind(address)?;
+
+    // start background tasks (auto expire)
+    auto_expire::start_auto_expire_task();
+
+    server.run().await
 }
