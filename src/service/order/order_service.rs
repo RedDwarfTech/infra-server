@@ -80,6 +80,7 @@ pub fn get_user_order_page(
     .order_by(orders_table::created_time.desc())
     .into_boxed::<diesel::pg::Pg>();
     query = query.filter(orders_table::deleted.eq(RdDeletedStatus::Normal as i16));
+    query = query.filter(orders_table::order_status.ne_all(vec![RdOrderStatus::EXPIRED as i32]));
     query = query.filter(orders_table::user_id.eq(login_user_info.userId));
     let query = query
         .paginate(params.pageNum.unwrap_or(1).clone())
