@@ -12,6 +12,7 @@ use crate::model::diesel::dolphin::custom_dolphin_models::Order;
 use crate::model::req::order::user_order_query_params::UserOrderQueryParams;
 use crate::model::resp::order::order_page_resp::OrderPageResp;
 use crate::service::order::order_item_service::create_order_item;
+use rust_wheel::model::enums::order::rd_order_status::RdOrderStatus;
 
 pub fn create_new_order(
     new_order: &OrderAdd,
