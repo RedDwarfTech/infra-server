@@ -43,7 +43,7 @@ use rust_wheel::model::error::infra_error::InfraError;
 use rust_wheel::model::response::user::login_response::LoginResponse;
 use rust_wheel::model::user::jwt_auth::create_access_token;
 use rust_wheel::model::user::login_user_info::LoginUserInfo;
-use rust_wheel::model::user::rd_user_info::RdUserInfo;
+use rust_wheel::model::user::rd_inner_user_info::RdInnerUserInfo;
 use sha256::digest;
 use uuid::Uuid;
 
