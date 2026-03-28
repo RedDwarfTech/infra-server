@@ -65,11 +65,7 @@ pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder 
     let user_failed_key = format!("{}:{}", login_failed_key, form.0.phone);
     let app_str = sync_get_str(&user_failed_key);
     if app_str.is_some() && app_str.unwrap().parse::<i32>().unwrap() > 3 {
-        return box_error_actix_rest_response(
-            "LOGIN_FAILED_TOO_MUCH",
-            "0030010002".to_owned(),
-            "登录错误次数过多".to_owned(),
-        );
+        return box_err_actix_rest_response(InfraError::LoginErrorTooMany);
     }
     let app_info = query_app_by_app_id(&form.0.app_id);
     let single_user_opt: Option<User> =
