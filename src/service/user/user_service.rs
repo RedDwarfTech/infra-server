@@ -11,8 +11,9 @@ use rust_wheel::common::util::security_util::get_sha;
 use rust_wheel::common::util::str_util::generate_random_string;
 use rust_wheel::common::util::time_util::get_current_millisecond;
 use rust_wheel::common::wrapper::actix_http_resp::{
-    box_actix_rest_response, box_error_actix_rest_response,
+    box_actix_rest_response, box_err_actix_rest_response
 };
+use rust_wheel::model::error::infra_error::InfraError;
 use rust_wheel::model::user::login_user_info::LoginUserInfo;
 
 pub fn query_user_by_product_id(user_phone: &String, prod_id: &i32) -> Option<User> {
@@ -116,11 +117,7 @@ pub fn change_user_pwd(req: &ChangePwdReq, user_info: &User) -> HttpResponse {
         handle_update_pwd(&req.new_password, &user_info.id);
         return box_actix_rest_response("ok");
     } else {
-        return box_error_actix_rest_response(
-            "LOGIN_INFO_NOT_MATCH",
-            "0030010001".to_owned(),
-            "登陆信息不匹配".to_owned(),
-        );
+        return box_err_actix_rest_response(InfraError::LoginInfoNotMatch);
     }
 }
 

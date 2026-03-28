@@ -32,7 +32,6 @@ use chrono::Local;
 use log::error;
 use rand::Rng;
 use rust_wheel::common::util::security_util::get_sha;
-use rust_wheel::common::wrapper::actix_http_resp::box_error_actix_rest_response;
 use rust_wheel::common::wrapper::actix_http_resp::{
     box_actix_rest_response, box_err_actix_rest_response,
 };
@@ -165,11 +164,7 @@ pub async fn change_passowrd(
     let app: App = query_cached_app(&login_user_info.appId);
     let cur_user = get_cached_user(&login_user_info, &app);
     if app.app_id != cur_user.app_id {
-        return box_error_actix_rest_response(
-            "APP_INFO_NOT_MATCH",
-            "0030010007".to_owned(),
-            "APPID不匹配".to_owned(),
-        );
+        return box_err_actix_rest_response(InfraError::AppIdNotMatch);
     }
     return change_user_pwd(&req.0, &cur_user);
 }

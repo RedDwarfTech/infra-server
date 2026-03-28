@@ -135,11 +135,7 @@ pub fn do_user_reg(req: &RegReq, app: &App, ip: &str) -> HttpResponse {
     }
     let exists_user = query_user_by_product_id(&req.phone, &app.product_id);
     if exists_user.is_some() {
-        return box_error_actix_rest_response(
-            "USER_ALREADY_REG",
-            "0030010005".to_owned(),
-            "用户已注册".to_owned(),
-        );
+        return box_err_actix_rest_response(InfraError::UserAlreadyRegistered);
     }
     let mut reg_u = UserAdd::default();
     reg_u.phone = req.phone.clone();
