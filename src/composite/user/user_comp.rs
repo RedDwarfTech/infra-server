@@ -39,8 +39,7 @@ use rust_wheel::{
     model::{
         error::infra_error::InfraError,
         user::{
-            login_user_info::LoginUserInfo, rd_user_info::RdUserInfo,rd_user_info::RdInnerUserInfo,
-            web_jwt_payload::WebJwtPayload,
+            login_user_info::LoginUserInfo, rd_inner_user_info::RdInnerUserInfo, rd_user_info::RdUserInfo, web_jwt_payload::WebJwtPayload
         },
     },
 };
