@@ -69,7 +69,7 @@ pub fn get_rd_user_by_id(uid: &i64) -> RdUserInfo {
     return rd_user;
 }
 
-pub fn get_rd_inner_user_by_id(uid: &i64) -> RdUserInfo {
+pub fn get_rd_inner_user_by_id(uid: &i64) -> RdInnerUserInfo {
     let u_info = query_user_by_id(uid);
     let u_sub = get_user_sub_expire_time(&u_info.id, &u_info.product_id);
     let rd_user = RdInnerUserInfo {
