@@ -5,7 +5,7 @@ use crate::common::cache::user_cache::store_login_user;
 use crate::composite::user::user_comp::is_valid_password;
 use crate::composite::user::user_comp::{
     do_user_reg, get_cached_rd_user, get_cached_user, get_cached_user_by_phone, get_jwt_payload,
-    get_rd_user_by_id,
+    get_rd_inner_user_by_id,
 };
 use crate::model::diesel::custom::notify::sms_log_add::SmsLogAdd;
 use crate::model::diesel::custom::oauth::oauth_add::OauthAdd;
@@ -198,7 +198,7 @@ pub async fn reg_user(req: HttpRequest, form: actix_web_validator::Json<RegReq>)
 )]
 #[get("/detail")]
 pub async fn get_inner_user(params: web::Query<UserQueryParams>) -> impl Responder {
-    let cur_user: RdUserInfo = get_rd_user_by_id(&params.0.id);
+    let cur_user: RdInnerUserInfo = get_rd_inner_user_by_id(&params.0.id);
     return box_actix_rest_response(cur_user);
 }
 

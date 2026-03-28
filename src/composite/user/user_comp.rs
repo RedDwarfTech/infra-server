@@ -39,7 +39,7 @@ use rust_wheel::{
     model::{
         error::infra_error::InfraError,
         user::{
-            login_user_info::LoginUserInfo, rd_user_info::RdUserInfo,
+            login_user_info::LoginUserInfo, rd_user_info::RdUserInfo,rd_user_info::RdInnerUserInfo,
             web_jwt_payload::WebJwtPayload,
         },
     },
@@ -66,6 +66,26 @@ pub fn get_rd_user_by_id(uid: &i64) -> RdUserInfo {
             0
         },
         app_name: "".to_string(),
+    };
+    return rd_user;
+}
+
+pub fn get_rd_inner_user_by_id(uid: &i64) -> RdUserInfo {
+    let u_info = query_user_by_id(uid);
+    let u_sub = get_user_sub_expire_time(&u_info.id, &u_info.product_id);
+    let rd_user = RdInnerUserInfo {
+        id: u_info.id,
+        nickname: u_info.nickname,
+        device_id: "".to_string(),
+        app_id: u_info.app_id,
+        avatar_url: u_info.avatar_url,
+        auto_renew_product_expire_time_ms: if u_sub.is_some() {
+            u_sub.unwrap().sub_end_time
+        } else {
+            0
+        },
+        app_name: "".to_string(),
+        salt: u_info.salt,
     };
     return rd_user;
 }
