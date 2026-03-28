@@ -66,7 +66,6 @@ pub fn get_rd_user_by_id(uid: &i64) -> RdUserInfo {
             0
         },
         app_name: "".to_string(),
-        salt: u_info.salt,
     };
     return rd_user;
 }
@@ -125,8 +124,7 @@ pub fn get_cached_rd_user(login_user_info: &LoginUserInfo, app: &App) -> RdUserI
         } else {
             0
         },
-        app_name: app.app_name.to_string(),
-        salt: u_info.salt.to_string(),
+        app_name: app.app_name.to_string()
     };
     return rd_user;
 }
