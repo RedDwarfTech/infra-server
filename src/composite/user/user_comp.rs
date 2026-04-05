@@ -32,7 +32,7 @@ use rust_wheel::{
             time_util::get_current_millisecond,
         },
         wrapper::actix_http_resp::{
-            box_actix_rest_response, box_err_actix_rest_response, box_error_actix_rest_response,
+            box_actix_rest_response, box_err_actix_rest_response,
         },
     },
     config::cache::redis_util::{set_str, sync_get_str},
