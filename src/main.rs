@@ -32,6 +32,8 @@ use utoipa::OpenApi;
 use utoipa_rapidoc::RapiDoc;
 use utoipa_swagger_ui::SwaggerUi;
 
+use rust_wheel::common::util::net::auth_middleware::AuthMiddleware;
+
 lazy_static! {
     static ref VEC: Vec<String> = {
         let ignore_url: String = env::var("IGNORE_LOGIN_URL").expect("ignore url config missing");
@@ -47,6 +49,7 @@ async fn main() -> std::io::Result<()> {
     let address = ("0.0.0.0", port);
     let server = HttpServer::new(|| {
         App::new()
+        .wrap(AuthMiddleware)
             .configure(user_controller::config)
             .configure(health_controller::config)
             .configure(auth_controller::config)

@@ -12,7 +12,7 @@ use crate::{
 };
 use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
 use jsonwebtoken::errors::ErrorKind;
-use log::{error, warn};
+use log::error;
 use rust_wheel::{
     common::wrapper::actix_http_resp::{box_actix_rest_response, box_err_actix_rest_response},
     model::{
