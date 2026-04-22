@@ -5,10 +5,11 @@ use crate::common::db::database::get_conn;
 use crate::diesel::prelude::*;
 use crate::model::diesel::dolphin::custom_dolphin_models::IapProduct;
 
-pub fn query_goods_list(prod_id: &i32) -> Vec<IapProduct> {
+pub fn query_goods_list(prod_id: &i32, lang: &str) -> Vec<IapProduct> {
     use crate::model::diesel::dolphin::dolphin_schema::iap_product as prod_table;
     let predicate = prod_table::product_id.eq(prod_id.clone())
     .and(prod_table::online_status.eq(RdOnlineStatus::Online as i32))
+    .and(prod_table::lang.eq(lang))
     .and(prod_table::deleted.eq(RdDeletedStatus::Normal as i32));
     let err_msg = format!("{}{}","query by product id failed,prod_id:", prod_id);
     let products = prod_table::table

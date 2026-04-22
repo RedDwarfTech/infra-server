@@ -56,6 +56,7 @@ table! {
         deleted -> Int4,
         amount -> Int4,
         period -> Int4,
+        lang -> Varchar,
     }
 }
 

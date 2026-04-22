@@ -97,6 +97,7 @@ pub struct IapProduct {
     pub deleted: i32,
     pub amount: i32,
     pub period: i32,
+    pub lang: String,
 }
 
 #[derive(Insertable, Queryable, QueryableByName, Debug, Serialize, Deserialize, Default, Clone)]
