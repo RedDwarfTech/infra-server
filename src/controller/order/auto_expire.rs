@@ -18,7 +18,7 @@ const BATCH_SIZE: i64 = 1;
 const EXPIRE_SECONDS: i64 = 1800; // 30 minutes
 
 async fn acquire_lock(
-    con: &mut redis::aio::Connection,
+    con: &mut redis::aio::MultiplexedConnection,
     key: &str,
     val: &str,
     ttl_ms: usize,
@@ -31,7 +31,7 @@ async fn acquire_lock(
 }
 
 async fn release_lock(
-    con: &mut redis::aio::Connection,
+    con: &mut redis::aio::MultiplexedConnection,
     key: &str,
     val: &str,
 ) -> redis::RedisResult<()> {
@@ -98,7 +98,7 @@ pub fn start_auto_expire_task() {
                 return;
             }
         };
-        let mut con = match client.get_tokio_connection().await {
+        let mut con = match client.get_multiplexed_async_connection().await {
             Ok(c) => c,
             Err(e) => {
                 error!("get redis connection failed: {}", e);
