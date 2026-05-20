@@ -16,7 +16,7 @@ rust_wheel = { git = "https://github.com/RedDwarfTech/rust_wheel.git", features 
     "texhub",
     "alipay",
 ] }
-validator = { version = "0.20.0", features = ["derive"] }
+validator = { version = "0.16.1", features = ["derive"] }
 diesel = { version = "2.3.0", features = [
     "postgres",
     "64-column-tables",
@@ -62,7 +62,7 @@ openssl = "*"
 openssl-probe = "0.1.2"
 alibaba-cloud-sdk-rust = { git = "https://github.com/jiangxiaoqiang/alibaba-cloud-sdk-rust.git" }
 gostd = "0.4.5"
-rand = "0.10.1"
+rand = { version = "0.10.1", features = ["thread_rng"] }
 anyhow = "1.0.86"
 ipnetwork = { version = "0.21.1", features = ["serde"] }
 reqwest = { version = "0.13.3", features = ["json"] }

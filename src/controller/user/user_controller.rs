@@ -30,7 +30,7 @@ use crate::service::user::user_service::{
 use actix_web::{get, patch, post, put, web, HttpRequest, Responder};
 use chrono::Local;
 use log::error;
-use rand::Rng;
+use rand::distr::{Distribution, Uniform};
 use rust_wheel::common::util::security_util::get_sha;
 use rust_wheel::common::wrapper::actix_http_resp::{
     box_actix_rest_response, box_err_actix_rest_response,
@@ -266,8 +266,9 @@ pub async fn send_reset_pwd_verify_code(
         error!("send reset pwd get template is null,{:?}", &params.0);
         return box_actix_rest_response("ok");
     }
-    let mut rng = rand::thread_rng();
-    let random_number: u32 = rng.gen_range(100000..=999999);
+    let mut rng = rand::rng();
+    let distribution = Uniform::new_inclusive(100000, 999999).unwrap();
+    let random_number: u32 = distribution.sample(&mut rng);
     let sms_req = SmsReq {
         phone: params.0.phone,
         app_id: params.0.app_id,
