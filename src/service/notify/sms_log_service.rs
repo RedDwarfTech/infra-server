@@ -31,3 +31,19 @@ pub fn count_today_sms_log() -> i64 {
         .unwrap();
     return query_resp;
 }
+
+pub fn count_today_sms_log_by_phone(phone: &str) -> i64 {
+    use crate::model::diesel::dolphin::dolphin_schema::sms_log as query_table;
+    let end = end_of_today();
+    let start = start_of_today();
+    let predicate = query_table::created_time
+        .lt(end)
+        .and(query_table::created_time.gt(start))
+        .and(query_table::phone.eq(phone));
+    let query_resp = query_table::table
+        .filter(&predicate)
+        .count()
+        .get_result(&mut get_conn())
+        .unwrap();
+    return query_resp;
+}

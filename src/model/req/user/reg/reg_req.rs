@@ -15,4 +15,7 @@ pub struct RegReq {
     pub device_id: String,
     #[serde(rename = "countryCode")]
     pub country_code: Option<String>,
+    #[validate(length(min = 1))]
+    #[serde(rename = "verifyCode")]
+    pub verify_code: String,
 }

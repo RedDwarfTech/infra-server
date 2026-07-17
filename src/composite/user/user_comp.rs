@@ -25,6 +25,7 @@ use crate::{
 use actix_web::HttpResponse;
 use fancy_regex::Regex;
 use ipnetwork::IpNetwork;
+use log::error;
 use rust_wheel::{
     common::{
         util::{
@@ -35,7 +36,7 @@ use rust_wheel::{
             box_actix_rest_response, box_err_actix_rest_response,
         },
     },
-    config::cache::redis_util::{set_str, sync_get_str},
+    config::cache::redis_util::{del_redis_key, get_str_default, set_str, sync_get_str},
     model::{
         error::infra_error::InfraError,
         user::{
@@ -156,6 +157,21 @@ pub fn do_user_reg(req: &RegReq, app: &App, ip: &str) -> HttpResponse {
     if exists_user.is_some() {
         return box_err_actix_rest_response(InfraError::UserAlreadyRegistered);
     }
+    let cached_key = format!("infra:user:sms:reg:{}", &req.phone);
+    let redis_resp = get_str_default(&cached_key);
+    match redis_resp {
+        Ok(data) => {
+            if data.is_none() {
+                return box_err_actix_rest_response(InfraError::VerifyCodeExpired);
+            }
+            if data.unwrap() != req.verify_code {
+                return box_err_actix_rest_response(InfraError::SmsVerifyCodeNotMatch);
+            }
+        }
+        Err(_) => {
+            return box_err_actix_rest_response(InfraError::VerifyCodeExpired);
+        }
+    }
     let mut reg_u = UserAdd::default();
     reg_u.phone = req.phone.clone();
     let pwd_salt = generate_random_string(16);
@@ -175,6 +191,9 @@ pub fn do_user_reg(req: &RegReq, app: &App, ip: &str) -> HttpResponse {
     reg_u.created_time = get_current_millisecond();
     reg_u.updated_time = get_current_millisecond();
     add_user(&reg_u);
+    if let Err(e) = del_redis_key(&cached_key) {
+        error!("delete reg sms code failed, {}, key: {}", e, cached_key);
+    }
     return box_actix_rest_response("ok");
 }
 

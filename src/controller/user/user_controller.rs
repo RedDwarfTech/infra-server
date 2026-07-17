@@ -20,7 +20,9 @@ use crate::model::req::user::pwd::reset_pwd_req::ResetPwdReq;
 use crate::model::req::user::query::user_query_params::UserQueryParams;
 use crate::model::req::user::reg::reg_req::RegReq;
 use crate::service::app::app_service::{query_app_by_app_id, query_cached_app};
-use crate::service::notify::sms_log_service::{count_today_sms_log, save_sms_log};
+use crate::service::notify::sms_log_service::{
+    count_today_sms_log, count_today_sms_log_by_phone, save_sms_log,
+};
 use crate::service::notify::sms_service::send_sms;
 use crate::service::notify::sms_template_service::get_app_sms_tempate;
 use crate::service::oauth::oauth_service::insert_refresh_token;
@@ -33,7 +35,7 @@ use log::error;
 use rand::distr::{Distribution, Uniform};
 use rust_wheel::common::util::security_util::get_sha;
 use rust_wheel::common::wrapper::actix_http_resp::{
-    box_actix_rest_response, box_err_actix_rest_response,
+    box_actix_rest_response, box_err_actix_rest_response, box_error_actix_rest_response,
 };
 use rust_wheel::config::app::app_conf_reader::get_app_config;
 use rust_wheel::config::cache::redis_util::{
@@ -124,6 +126,36 @@ fn increase_failed_count(user_name: String) {
             error!("increment login count failed, {}", err)
         }
     }
+}
+
+fn get_sms_phone_limit_per_day() -> i64 {
+    env::var("SMS_PHONE_LIMIT_PER_DAY")
+        .ok()
+        .and_then(|v| v.parse::<i64>().ok())
+        .unwrap_or(10)
+}
+
+/// 单号日限 → 全站日限；超限返回「当日额度已满」
+fn check_sms_send_limits(phone: &str) -> Option<actix_web::HttpResponse> {
+    let phone_count = count_today_sms_log_by_phone(phone);
+    if phone_count >= get_sms_phone_limit_per_day() {
+        return Some(box_error_actix_rest_response(
+            "",
+            "0030010015".to_string(),
+            "当日额度已满".to_string(),
+        ));
+    }
+    let sms_count = count_today_sms_log();
+    let limit_per_day: String = env::var("LIMIT_PER_DAY").expect("limit per day config missing");
+    let parsed_number: i64 = limit_per_day.parse().expect("LIMIT_PER_DAY parse failed");
+    if sms_count > parsed_number {
+        return Some(box_error_actix_rest_response(
+            "",
+            "0030010015".to_string(),
+            "当日额度已满".to_string(),
+        ));
+    }
+    None
 }
 
 /// Current user
@@ -254,12 +286,8 @@ pub async fn send_reset_pwd_verify_code(
     if user.is_none() {
         return box_actix_rest_response("ok");
     }
-    // limit total sms msg count
-    let sms_count = count_today_sms_log();
-    let limit_per_day: String = env::var("LIMIT_PER_DAY").expect("limit per day config missing");
-    let parsed_number: Result<i64, _> = limit_per_day.parse();
-    if sms_count > parsed_number.unwrap() {
-        return box_actix_rest_response("reach today limit, try again later");
+    if let Some(limit_resp) = check_sms_send_limits(&params.0.phone) {
+        return limit_resp;
     }
     let sms_tpl = get_app_sms_tempate(&params.0.app_id, &"reset_pwd".to_owned());
     if sms_tpl.is_none() {
@@ -282,6 +310,74 @@ pub async fn send_reset_pwd_verify_code(
         let result = send_result.unwrap();
         let log = SmsLogAdd {
             service: "reset_pwd".to_string(),
+            text: Some(random_number.to_string()),
+            template_code: sms_req.tpl_code,
+            phone: Some(sms_req.phone.clone()),
+            request_id: Some(result.Code),
+            biz_id: Some(result.BizId),
+        };
+        save_sms_log(&log);
+        return box_actix_rest_response("ok");
+    }
+    return box_actix_rest_response("ok");
+}
+
+/// Send register verify code
+///
+/// Send register verify code
+#[utoipa::path(
+    context_path = "/infra/user/reg/send-verify-code",
+    path = "/",
+    responses(
+        (status = 200, description = "send register sms verify code")
+    )
+)]
+#[put("/reg/send-verify-code")]
+pub async fn send_reg_verify_code(
+    params: actix_web_validator::Json<LoginSmsVerifyReq>,
+) -> impl Responder {
+    let caced_key = format!("infra:user:sms:reg:{}", params.0.phone);
+    let redis_resp = get_str_default(&caced_key);
+    match redis_resp {
+        Ok(data) => {
+            if data.is_some() {
+                return box_actix_rest_response("too freqency, try again later");
+            }
+        }
+        Err(e) => {
+            error!("get redis reg sms info failed,{},params:{:?}", e, params.0);
+            return box_actix_rest_response("ok");
+        }
+    }
+    let cached_app = query_cached_app(&params.0.app_id);
+    let user = get_cached_user_by_phone(&params.0.phone, &cached_app);
+    if user.is_some() {
+        return box_err_actix_rest_response(InfraError::UserAlreadyRegistered);
+    }
+    if let Some(limit_resp) = check_sms_send_limits(&params.0.phone) {
+        return limit_resp;
+    }
+    let sms_tpl = get_app_sms_tempate(&params.0.app_id, &"user_reg".to_owned());
+    if sms_tpl.is_none() {
+        error!("send reg verify get template is null,{:?}", &params.0);
+        return box_actix_rest_response("ok");
+    }
+    let mut rng = rand::rng();
+    let distribution = Uniform::new_inclusive(100000, 999999).unwrap();
+    let random_number: u32 = distribution.sample(&mut rng);
+    let sms_req = SmsReq {
+        phone: params.0.phone,
+        app_id: params.0.app_id,
+        tpl_code: sms_tpl.unwrap().sms_code,
+    };
+    let mut sms_params = HashMap::new();
+    sms_params.insert("code", random_number.to_string());
+    let send_result = send_sms(&sms_req, sms_params);
+    if send_result.is_some() {
+        set_str(&caced_key, &random_number.to_string(), 60);
+        let result = send_result.unwrap();
+        let log = SmsLogAdd {
+            service: "user_reg".to_string(),
             text: Some(random_number.to_string()),
             template_code: sms_req.tpl_code,
             phone: Some(sms_req.phone.clone()),
@@ -373,6 +469,7 @@ pub fn config(conf: &mut web::ServiceConfig) {
         .service(reg_user)
         .service(change_nickname)
         .service(send_reset_pwd_verify_code)
+        .service(send_reg_verify_code)
         .service(send_login_verify_code)
         .service(reset_pwd)
         .service(current_user);
