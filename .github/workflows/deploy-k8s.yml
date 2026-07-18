@@ -14,3 +14,4 @@ jobs:
       app-namespace: reddwarf-pro
       app-name: infra-server-service
       image-name: infra-server
+      service-type: statefulset
