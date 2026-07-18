@@ -272,7 +272,7 @@ pub async fn send_reset_pwd_verify_code(
     match redis_resp {
         Ok(data) => {
             if data.is_some() {
-                return box_actix_rest_response("too freqency, try again later");
+                return box_actix_rest_response("too freqency,please try again later");
             }
         }
         Err(e) => {
