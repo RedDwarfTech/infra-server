@@ -32,7 +32,7 @@ use crate::service::user::user_service::{
 };
 use actix_web::{get, patch, post, put, web, HttpRequest, Responder};
 use chrono::Local;
-use log::error;
+use log::{error, info, warn};
 use rand::distr::{Distribution, Uniform};
 use rust_wheel::common::util::security_util::get_sha;
 use rust_wheel::common::wrapper::actix_http_resp::{
@@ -177,6 +177,10 @@ fn check_sms_send_limits(phone: &str) -> Option<actix_web::HttpResponse> {
         ));
     }
     None
+}
+
+fn reg_sms_send_error(result_code: &str, msg: &str) -> actix_web::HttpResponse {
+    box_error_actix_rest_response("", result_code.to_string(), msg.to_string())
 }
 
 /// Current user
@@ -357,58 +361,116 @@ pub async fn send_reset_pwd_verify_code(
 pub async fn send_reg_verify_code(
     params: actix_web_validator::Json<LoginSmsVerifyReq>,
 ) -> impl Responder {
+    info!(
+        "send_reg_verify_code start, phone:{}, app_id:{}",
+        params.0.phone, params.0.app_id
+    );
     let caced_key = format!("infra:user:sms:reg:{}", params.0.phone);
     let redis_resp = get_str_default(&caced_key);
     match redis_resp {
         Ok(data) => {
             if data.is_some() {
-                return box_actix_rest_response("too freqency, try again later");
+                warn!(
+                    "send_reg_verify_code blocked by frequency limit, phone:{}, app_id:{}, cache_key:{}",
+                    params.0.phone, params.0.app_id, caced_key
+                );
+                return reg_sms_send_error("0030010017", "发送过于频繁，请稍后再试");
             }
         }
         Err(e) => {
-            error!("get redis reg sms info failed,{},params:{:?}", e, params.0);
-            return box_actix_rest_response("ok");
+            error!(
+                "send_reg_verify_code redis read failed, phone:{}, app_id:{}, cache_key:{}, err:{}",
+                params.0.phone, params.0.app_id, caced_key, e
+            );
+            return reg_sms_send_error("0030010018", "服务暂不可用，请稍后再试");
         }
     }
     let cached_app = query_cached_app(&params.0.app_id);
     let user = get_cached_user_by_phone(&params.0.phone, &cached_app);
     if user.is_some() {
+        warn!(
+            "send_reg_verify_code user already registered, phone:{}, app_id:{}, user_id:{}",
+            params.0.phone, params.0.app_id, user.unwrap().id
+        );
         return box_err_actix_rest_response(InfraError::UserAlreadyRegistered);
     }
     if let Some(limit_resp) = check_sms_send_limits(&params.0.phone) {
+        let phone_count = count_today_sms_log_by_phone(&params.0.phone);
+        let sms_count = count_today_sms_log();
+        warn!(
+            "send_reg_verify_code blocked by daily limit, phone:{}, app_id:{}, phone_count:{}, total_count:{}",
+            params.0.phone, params.0.app_id, phone_count, sms_count
+        );
         return limit_resp;
     }
     let sms_tpl = get_app_sms_tempate(&params.0.app_id, &"user_reg".to_owned());
     if sms_tpl.is_none() {
-        error!("send reg verify get template is null,{:?}", &params.0);
-        return box_actix_rest_response("ok");
+        error!(
+            "send_reg_verify_code sms template not found, phone:{}, app_id:{}, template_code:user_reg",
+            params.0.phone, params.0.app_id
+        );
+        return reg_sms_send_error("0030010019", "短信模板未配置");
     }
+    let tpl = sms_tpl.unwrap();
     let mut rng = rand::rng();
     let distribution = Uniform::new_inclusive(100000, 999999).unwrap();
     let random_number: u32 = distribution.sample(&mut rng);
     let sms_req = SmsReq {
-        phone: params.0.phone,
-        app_id: params.0.app_id,
-        tpl_code: sms_tpl.unwrap().sms_code,
+        phone: params.0.phone.clone(),
+        app_id: params.0.app_id.clone(),
+        tpl_code: tpl.sms_code.clone(),
     };
+    info!(
+        "send_reg_verify_code invoking send_sms, phone:{}, app_id:{}, tpl_code:{}",
+        sms_req.phone, sms_req.app_id, sms_req.tpl_code
+    );
     let mut sms_params = HashMap::new();
     sms_params.insert("code", random_number.to_string());
     let send_result = send_sms(&sms_req, sms_params);
-    if send_result.is_some() {
-        set_str(&caced_key, &random_number.to_string(), 60);
-        let result = send_result.unwrap();
-        let log = SmsLogAdd {
-            service: "user_reg".to_string(),
-            text: Some(random_number.to_string()),
-            template_code: sms_req.tpl_code,
-            phone: Some(sms_req.phone.clone()),
-            request_id: Some(result.Code),
-            biz_id: Some(result.BizId),
-        };
-        save_sms_log(&log);
-        return box_actix_rest_response("ok");
+    match send_result {
+        Some(result) => {
+            if result.Code != "OK" {
+                warn!(
+                    "send_reg_verify_code aliyun rejected sms, phone:{}, app_id:{}, tpl_code:{}, aliyun_code:{}, aliyun_message:{}, request_id:{}, biz_id:{}",
+                    sms_req.phone,
+                    sms_req.app_id,
+                    sms_req.tpl_code,
+                    result.Code,
+                    result.Message,
+                    result.RequestId,
+                    result.BizId
+                );
+                let msg = if result.Message.is_empty() {
+                    format!("短信发送失败: {}", result.Code)
+                } else {
+                    format!("短信发送失败: {}", result.Message)
+                };
+                return reg_sms_send_error("0030010020", &msg);
+            }
+            set_str(&caced_key, &random_number.to_string(), 60);
+            let log = SmsLogAdd {
+                service: "user_reg".to_string(),
+                text: Some(random_number.to_string()),
+                template_code: sms_req.tpl_code.clone(),
+                phone: Some(sms_req.phone.clone()),
+                request_id: Some(result.RequestId.clone()),
+                biz_id: Some(result.BizId.clone()),
+            };
+            save_sms_log(&log);
+            info!(
+                "send_reg_verify_code sms sent successfully, phone:{}, app_id:{}, tpl_code:{}, request_id:{}, biz_id:{}",
+                sms_req.phone, sms_req.app_id, sms_req.tpl_code, result.RequestId, result.BizId
+            );
+            return box_actix_rest_response("ok");
+        }
+        None => {
+            warn!(
+                "send_reg_verify_code send_sms returned None, phone:{}, app_id:{}, tpl_code:{}",
+                sms_req.phone, sms_req.app_id, sms_req.tpl_code
+            );
+            return reg_sms_send_error("0030010020", "短信发送失败，请稍后再试");
+        }
     }
-    return box_actix_rest_response("ok");
 }
 
 /// Verify code

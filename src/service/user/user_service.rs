@@ -58,18 +58,19 @@ pub fn query_user_by_phone(phone_number: &String, filter_product_id: &i32) -> Op
     let predicate = query_table::phone
         .eq(phone_number)
         .and(query_table::product_id.eq(filter_product_id));
-    let db_user = query_table::table
+    match query_table::table
         .filter(&predicate)
         .limit(1)
-        .first::<User>(&mut get_conn());
-    match db_user {
-        Ok(data) => return Some(data),
+        .first::<User>(&mut get_conn())
+    {
+        Ok(data) => Some(data),
+        Err(diesel::result::Error::NotFound) => None,
         Err(err) => {
             error!(
                 "query user facing issue,{},phone:{},product_id:{}",
                 err, phone_number, filter_product_id
             );
-            return None;
+            None
         }
     }
 }

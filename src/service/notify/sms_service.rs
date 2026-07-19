@@ -30,7 +30,7 @@ pub fn send_sms(sms_req: &SmsReq, params: HashMap<&str,String>) -> Option<SendSm
         let resp: SendSmsResponse = SendSmsResponse {
             RequestId: "1".to_string(),
             BizId: "1".to_string(),
-            Code: "12".to_owned(),
+            Code: "OK".to_owned(),
             Message: "ok".to_owned(),
         };
         return Some(resp);
