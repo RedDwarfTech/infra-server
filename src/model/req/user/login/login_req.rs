@@ -13,4 +13,7 @@ pub struct LoginReq {
     #[validate(length(min = 1))]
     #[serde(rename = "deviceId")]
     pub device_id: String,
+    #[validate(length(min = 1))]
+    #[serde(rename = "cfToken")]
+    pub cf_token: String,
 }

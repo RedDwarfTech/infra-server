@@ -33,22 +33,40 @@ jobs:
         file: Dockerfile
         push: true
         tags: ${{ secrets.ALI_DOCKER_HUB_REGISTRY }}/reddwarf-pro/infra-server:${{ github.sha }}
-        # https://nova.moe/docker-attestation/
-        # https://stackoverflow.com/questions/75521775/buildx-docker-image-claims-to-be-a-manifest-list
-        # https://smartservice.console.aliyun.com/service/chat?spm=5176.smartservice_service_create_ticket_step_2.0.0.323d3f1bH4Z7fR&id=0005PCJF1W
         provenance: false
-        sbom: false 
+        sbom: false
 
-    - name: deploy to cluster
-      uses: steebchen/kubectl@v2.0.0
-      with: 
-        config: ${{ secrets.KUBE_CONFIG_DATA }}
-        command: set image --record statefulset/infra-server-service infra-server-service=${{ secrets.ALI_DOCKER_HUB_REGISTRY }}/reddwarf-pro/infra-server:${{ github.sha }} -n reddwarf-pro
-
-    - name: verify statefulset
-      uses: steebchen/kubectl@v2.0.0
-      timeout-minutes: 3
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v4
       with:
-        config: ${{ secrets.KUBE_CONFIG_DATA }}
         version: v1.21.0
-        command: rollout status statefulset/infra-server-service -n reddwarf-pro
+
+    - name: Configure kubeconfig
+      env:
+        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+      run: |
+        mkdir -p ~/.kube
+        echo "$KUBE_CONFIG_DATA" | base64 -d > ~/.kube/config
+
+    - name: Sync Turnstile secret to ConfigMap
+      env:
+        CF_TURNSTILE_SECRET_KEY: ${{ secrets.CF_TURNSTILE_SECRET_KEY }}
+      run: |
+        kubectl patch configmap infra-server-service-pro-config \
+          -n reddwarf-pro \
+          --type merge \
+          -p "{\"data\":{\"cf_turnstile_secret_key\":\"${CF_TURNSTILE_SECRET_KEY}\"}}"
+
+    - name: Update image tag in StatefulSet manifest
+      run: |
+        sed -i "s|registry.cn-hongkong.aliyuncs.com/reddwarf-pro/infra-server:.*|${{ secrets.ALI_DOCKER_HUB_REGISTRY }}/reddwarf-pro/infra-server:${{ github.sha }}|" \
+          doc/deploy/statefulset/infra-server-service.yaml
+
+    - name: Apply service manifest
+      run: kubectl apply -f doc/deploy/service/infra-server-service.yaml
+
+    - name: Apply statefulset manifest
+      run: kubectl apply -f doc/deploy/statefulset/infra-server-service.yaml
+
+    - name: Verify statefulset rollout
+      run: kubectl rollout status statefulset/infra-server-service -n reddwarf-pro --timeout=180s

@@ -20,6 +20,7 @@ use crate::model::req::user::pwd::reset_pwd_req::ResetPwdReq;
 use crate::model::req::user::query::user_query_params::UserQueryParams;
 use crate::model::req::user::reg::reg_req::RegReq;
 use crate::service::app::app_service::{query_app_by_app_id, query_cached_app};
+use crate::service::captcha::turnstile_service::verify_turnstile_token;
 use crate::service::notify::sms_log_service::{
     count_today_sms_log, count_today_sms_log_by_phone, save_sms_log,
 };
@@ -60,7 +61,15 @@ use uuid::Uuid;
     )
 )]
 #[post("/login")]
-pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder {
+pub async fn login(req: HttpRequest, form: actix_web_validator::Json<LoginReq>) -> impl Responder {
+    let client_ip = extract_client_ip(&req);
+    if !verify_turnstile_token(&form.0.cf_token, client_ip.as_deref()).await {
+        return box_error_actix_rest_response(
+            "",
+            "0030010016".to_string(),
+            "人机验证失败，请重试".to_string(),
+        );
+    }
     // https://stackoverflow.com/questions/72748775/error-the-trait-handler-is-not-implemented-for-fn-httpresponse
     let login_failed_key = get_app_config("infra.login_failed_key");
     let user_failed_key = format!("{}:{}", login_failed_key, form.0.phone);
@@ -112,6 +121,18 @@ pub async fn login(form: actix_web_validator::Json<LoginReq>) -> impl Responder 
         //}
         return box_err_actix_rest_response(InfraError::LoginInfoNotMatch);
     }
+}
+
+fn extract_client_ip(req: &HttpRequest) -> Option<String> {
+    req.headers()
+        .get("x-texhub-real-ip")
+        .and_then(|value| value.to_str().ok())
+        .map(|value| value.to_string())
+        .or_else(|| {
+            req.connection_info()
+                .realip_remote_addr()
+                .map(|value| value.to_string())
+        })
 }
 
 fn increase_failed_count(user_name: String) {

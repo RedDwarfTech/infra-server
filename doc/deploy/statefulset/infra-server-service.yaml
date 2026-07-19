@@ -1,26 +1,32 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: infra-server-service
   namespace: reddwarf-pro
+  labels:
+    app: infra-server-service
 spec:
-  replicas: 0
+  replicas: 1
+  revisionHistoryLimit: 10
+  serviceName: infra-server-service
+  podManagementPolicy: OrderedReady
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
   selector:
     matchLabels:
       app: infra-server-service
+  updateStrategy:
+    type: RollingUpdate
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: infra-server-service
-      annotations:
-        kubectl.kubernetes.io/restartedAt: '2024-06-15T08:59:08Z'
-        telepresence.getambassador.io/restartedAt: '2024-07-06T15:05:16Z'
     spec:
       containers:
         - name: infra-server-service
-          image: >-
-            registry.cn-hongkong.aliyuncs.com/reddwarf-pro/infra-server:bc95cc4c704927a47a11caccdeed9467a2e32104
+          image: registry.cn-hongkong.aliyuncs.com/reddwarf-pro/infra-server:f676a46be768a69ef3d95b67e3b1656aa5f5e530
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
               protocol: TCP
@@ -55,6 +61,26 @@ spec:
                 configMapKeyRef:
                   name: infra-server-service-pro-config
                   key: env
+            - name: IGNORE_LOGIN_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: infra-server-service-pro-config
+                  key: ignore_login_url
+            - name: SMS_TEST_PHONE
+              valueFrom:
+                configMapKeyRef:
+                  name: infra-server-service-pro-config
+                  key: sms_test_phone
+            - name: LIMIT_PER_DAY
+              valueFrom:
+                configMapKeyRef:
+                  name: infra-server-service-pro-config
+                  key: limit_per_day
+            - name: CF_TURNSTILE_SECRET_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: infra-server-service-pro-config
+                  key: cf_turnstile_secret_key
           resources:
             limits:
               cpu: 100m
@@ -74,7 +100,6 @@ spec:
             failureThreshold: 3
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
-          imagePullPolicy: IfNotPresent
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst
@@ -82,10 +107,3 @@ spec:
       imagePullSecrets:
         - name: hongkong-regcred
       schedulerName: default-scheduler
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 25%
-      maxSurge: 25%
-  revisionHistoryLimit: 10
-  progressDeadlineSeconds: 600

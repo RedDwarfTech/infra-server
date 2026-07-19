@@ -15,3 +15,45 @@ jobs:
       app-name: infra-server-service
       image-name: infra-server
       service-type: statefulset
+
+  sync-manifest:
+    needs: call-build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.21.0
+
+      - name: Configure kubeconfig
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+        run: |
+          mkdir -p ~/.kube
+          echo "$KUBE_CONFIG_DATA" | base64 -d > ~/.kube/config
+
+      - name: Sync Turnstile secret to ConfigMap
+        env:
+          CF_TURNSTILE_SECRET_KEY: ${{ secrets.CF_TURNSTILE_SECRET_KEY }}
+        run: |
+          kubectl patch configmap infra-server-service-pro-config \
+            -n reddwarf-pro \
+            --type merge \
+            -p "{\"data\":{\"cf_turnstile_secret_key\":\"${CF_TURNSTILE_SECRET_KEY}\"}}"
+
+      - name: Update image tag in StatefulSet manifest
+        run: |
+          sed -i "s|registry.cn-hongkong.aliyuncs.com/reddwarf-pro/infra-server:.*|registry.cn-hongkong.aliyuncs.com/reddwarf-pro/infra-server:${{ github.sha }}|" \
+            doc/deploy/statefulset/infra-server-service.yaml
+
+      - name: Apply service manifest
+        run: kubectl apply -f doc/deploy/service/infra-server-service.yaml
+
+      - name: Apply statefulset manifest
+        run: kubectl apply -f doc/deploy/statefulset/infra-server-service.yaml
+
+      - name: Verify statefulset rollout
+        run: kubectl rollout status statefulset/infra-server-service -n reddwarf-pro --timeout=180s
