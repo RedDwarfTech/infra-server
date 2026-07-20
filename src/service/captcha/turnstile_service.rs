@@ -43,7 +43,7 @@ pub async fn verify_turnstile_token(token: &str, remote_ip: Option<&str>) -> boo
         Ok(response) => match response.json::<TurnstileVerifyResponse>().await {
             Ok(body) => {
                 if !body.success {
-                    error!("Turnstile verification failed: {:?}", body.error_codes);
+                    error!("Turnstile verification failed: {:?}, secret: {}", body.error_codes, secret);
                 }
                 body.success
             }
