@@ -1,9 +1,33 @@
-use log::error;
+use base64::{engine::general_purpose::STANDARD, Engine as _};
+use log::{error, warn};
 use reqwest::Client;
 use serde::Deserialize;
 use std::env;
 
 const TURNSTILE_VERIFY_URL: &str = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+
+/// ConfigMap / env 里若误存了 Base64（形如 `MHg0...`），自动还原为明文 `0x4...`。
+fn normalize_turnstile_secret(secret: &str) -> String {
+    let trimmed = secret.trim().to_string();
+    if trimmed.starts_with("0x") {
+        return trimmed;
+    }
+
+    if let Ok(decoded_bytes) = STANDARD.decode(trimmed.as_bytes()) {
+        if let Ok(decoded) = String::from_utf8(decoded_bytes) {
+            let decoded_trimmed = decoded.trim().to_string();
+            if decoded_trimmed.starts_with("0x") {
+                warn!(
+                    "CF_TURNSTILE_SECRET_KEY appears base64-encoded; decoded automatically. \
+                     Store the plaintext secret in ConfigMap (not base64)."
+                );
+                return decoded_trimmed;
+            }
+        }
+    }
+
+    trimmed
+}
 
 #[derive(Deserialize)]
 struct TurnstileVerifyResponse {
@@ -94,7 +118,7 @@ fn log_turnstile_failure(
 /// Verify a Cloudflare Turnstile token via Siteverify API.
 pub async fn verify_turnstile_token(token: &str, remote_ip: Option<&str>) -> bool {
     let secret = match env::var("CF_TURNSTILE_SECRET_KEY") {
-        Ok(value) if !value.is_empty() => value,
+        Ok(value) if !value.is_empty() => normalize_turnstile_secret(&value),
         _ => {
             error!("CF_TURNSTILE_SECRET_KEY is not configured");
             return false;

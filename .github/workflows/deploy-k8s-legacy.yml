@@ -52,10 +52,18 @@ jobs:
       env:
         CF_TURNSTILE_SECRET_KEY: ${{ secrets.CF_TURNSTILE_SECRET_KEY }}
       run: |
+        # ConfigMap data 是明文；若 GitHub Secret 误存了 Base64（decode 后以 0x 开头），先还原
+        RAW="$CF_TURNSTILE_SECRET_KEY"
+        DECODED=$(printf '%s' "$RAW" | base64 -d 2>/dev/null || true)
+        if [[ "$DECODED" == 0x* ]]; then
+          echo "Detected base64-encoded Turnstile secret; decoding before writing to ConfigMap"
+          RAW="$DECODED"
+        fi
+        PATCH=$(jq -n --arg k "$RAW" '{data:{cf_turnstile_secret_key:$k}}')
         kubectl patch configmap infra-server-service-pro-config \
           -n reddwarf-pro \
           --type merge \
-          -p "{\"data\":{\"cf_turnstile_secret_key\":\"${CF_TURNSTILE_SECRET_KEY}\"}}"
+          -p "$PATCH"
 
     - name: Update image tag in StatefulSet manifest
       run: |
