@@ -431,20 +431,21 @@ pub async fn send_reg_verify_code(
         Some(result) => {
             if result.Code != "OK" {
                 warn!(
-                    "send_reg_verify_code aliyun rejected sms, phone:{}, app_id:{}, tpl_code:{}, aliyun_code:{}, aliyun_message:{}, request_id:{}, biz_id:{}，result:{}",
+                    "send_reg_verify_code aliyun rejected sms, phone:{}, app_id:{}, tpl_code:{}, aliyun_code:{}, aliyun_message:{}, request_id:{}, biz_id:{}",
                     sms_req.phone,
                     sms_req.app_id,
                     sms_req.tpl_code,
                     result.Code,
                     result.Message,
                     result.RequestId,
-                    result.BizId,
-                    serde_json::to_string(&result).unwrap()
+                    result.BizId
                 );
-                let msg = if result.Message.is_empty() {
+                let msg = if !result.Message.is_empty() {
+                    format!("短信发送失败: {}", result.Message)
+                } else if !result.Code.is_empty() {
                     format!("短信发送失败: {}", result.Code)
                 } else {
-                    format!("短信发送失败: {}", result.Message)
+                    "短信发送失败，请稍后再试".to_string()
                 };
                 return reg_sms_send_error("0030010020", &msg);
             }
@@ -465,8 +466,8 @@ pub async fn send_reg_verify_code(
             return box_actix_rest_response("ok");
         }
         None => {
-            warn!(
-                "send_reg_verify_code send_sms returned None, phone:{}, app_id:{}, tpl_code:{}",
+            error!(
+                "send_reg_verify_code send_sms failed (see send_sms logs for detail), phone:{}, app_id:{}, tpl_code:{}",
                 sms_req.phone, sms_req.app_id, sms_req.tpl_code
             );
             return reg_sms_send_error("0030010020", "短信发送失败，请稍后再试");
