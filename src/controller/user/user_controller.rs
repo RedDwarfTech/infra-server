@@ -431,14 +431,15 @@ pub async fn send_reg_verify_code(
         Some(result) => {
             if result.Code != "OK" {
                 warn!(
-                    "send_reg_verify_code aliyun rejected sms, phone:{}, app_id:{}, tpl_code:{}, aliyun_code:{}, aliyun_message:{}, request_id:{}, biz_id:{}",
+                    "send_reg_verify_code aliyun rejected sms, phone:{}, app_id:{}, tpl_code:{}, aliyun_code:{}, aliyun_message:{}, request_id:{}, biz_id:{}，result:{}",
                     sms_req.phone,
                     sms_req.app_id,
                     sms_req.tpl_code,
                     result.Code,
                     result.Message,
                     result.RequestId,
-                    result.BizId
+                    result.BizId,
+                    serde_json::to_string(&result).unwrap()
                 );
                 let msg = if result.Message.is_empty() {
                     format!("短信发送失败: {}", result.Code)
