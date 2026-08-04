@@ -24,6 +24,7 @@ use controller::order::auto_expire;
 use controller::pay::alipay::alipay_controller;
 use controller::pay::alipay::alipay_notify_controller;
 use controller::pay::paypal::paypal_controller;
+use controller::pay::wechat::wechat_pay_controller;
 use controller::user::auth_controller;
 use controller::utils::id_controller;
 use lazy_static::lazy_static;
@@ -55,6 +56,7 @@ async fn main() -> std::io::Result<()> {
             .configure(auth_controller::config)
             .configure(goods_controller::config)
             .configure(alipay_controller::config)
+            .configure(wechat_pay_controller::config)
             .configure(paypal_controller::config)
             .configure(alipay_notify_controller::config)
             .configure(order_controller::config)
