@@ -81,7 +81,7 @@ pub fn do_wechat_pay(
 }
 
 pub fn prepare_pay(login_user_info: &LoginUserInfo, iap: &IapProduct) -> OrderResp {
-    let app_map = query_app_map_by_app_id(&login_user_info.appId, RdPayType::Alipay as i32);
+    let app_map = query_app_map_by_app_id(&login_user_info.appId, RdPayType::WechatPay as i32);
     let mut snowflake = Snowflake::default();
     let snow_order_id = snowflake.generate().to_string();
     let biz_content = AlipayOrderBizContent {
