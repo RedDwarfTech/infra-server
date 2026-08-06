@@ -37,7 +37,7 @@ pub fn do_wechat_pay(
 
     let req = WechatPayRequestV3 {
         appid: amap.third_app_id.clone().into(),
-        mch_id: "".to_string(),
+        mch_id: amap.mch_id.clone(),
         notify_url: notify_url.unwrap_or_default(),
         description: description,
         out_trade_no: biz_content.outTradeNo.clone(),
@@ -54,14 +54,22 @@ pub fn do_wechat_pay(
         scene_info: None,
         settle_info: None,
     };
-    let secret = env::var("WECHAT_API_V3_KEY").unwrap_or_default();
+    let secret = amap.app_secret.clone().unwrap_or_default();
     // create client and call unified_order_v3
-    let binding = WechatPayClient::<RedisStorage>::new(&amap.third_app_id, &secret);
+    let binding = WechatPayClient::<RedisStorage>::new(&amap.third_app_id, &secret)
+        .key_v3(secret.clone())
+        .mch_id(amap.mch_id.clone())
+        .serial_no(amap.serial_no.clone())
+        .private_key(amap.app_private_key.clone());
     let client = binding.wxpay();
-    match futures::executor::block_on(client.create_order_v3(TradeType::App, req)) {
+    match futures::executor::block_on(client.create_order_v3(TradeType::Native, req)) {
         Ok(pay_info) => {
-            // pay_info should be a JSON Value containing payment info; stringify as formText
-            let form_text = serde_json::to_string(&pay_info).unwrap_or_default();
+            // Native returns a code_url (weixin://wxpay/bizpayurl?...) as a plain string;
+            // expose it raw so the frontend can render it into a QR code image
+            let form_text = match &pay_info {
+                serde_json::Value::String(code_url) => code_url.clone(),
+                _ => serde_json::to_string(&pay_info).unwrap_or_default(),
+            };
             let order_resp = OrderResp {
                 formText: form_text,
                 orderId: biz_content.outTradeNo.to_string(),
@@ -81,7 +89,7 @@ pub fn do_wechat_pay(
 }
 
 pub fn prepare_pay(login_user_info: &LoginUserInfo, iap: &IapProduct) -> OrderResp {
-    let app_map = query_app_map_by_app_id(&login_user_info.appId, RdPayType::WechatPay as i32);
+    let app_map = query_app_map_by_app_id(&login_user_info.appId, RdPayType::Wechat as i32);
     let mut snowflake = Snowflake::default();
     let snow_order_id = snowflake.generate().to_string();
     let biz_content = AlipayOrderBizContent {
@@ -97,7 +105,7 @@ pub fn prepare_pay(login_user_info: &LoginUserInfo, iap: &IapProduct) -> OrderRe
         total_price: iap.price.clone(),
         third_app_id: app_map.third_app_id.clone(),
         app_id: app_map.app_id.clone(),
-        pay_channel: RdPayType::Alipay as i32,
+        pay_channel: RdPayType::Wechat as i32,
         qr_pay_model: app_map.qr_pay_model,
         subject: iap.product_title.clone(),
         product_code: "FAST_INSTANT_TRADE_PAY".to_owned(),

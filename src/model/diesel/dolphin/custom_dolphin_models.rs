@@ -120,6 +120,8 @@ pub struct AppMap {
     pub app_private_key_pkcs1: String,
     pub app_public_key_pkcs1: String,
     pub alipay_public_key: String,
+    pub mch_id: String,
+    pub serial_no: String,
 }
 
 #[derive(Insertable, Queryable, QueryableByName, Debug, Serialize, Deserialize, Default, Clone)]

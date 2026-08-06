@@ -17,6 +17,8 @@ table! {
         app_private_key_pkcs1 -> Varchar,
         app_public_key_pkcs1 -> Varchar,
         alipay_public_key -> Varchar,
+        mch_id -> Varchar,
+        serial_no -> Varchar,
     }
 }
 
