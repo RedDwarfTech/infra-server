@@ -105,14 +105,18 @@ pub fn send_email(to_addr: &str, subject: &str, body: &str) -> bool {
     }
     let mailer = builder.port(port).build();
     match mailer.send(&email) {
-        Ok(_) => {
-            info!("send_email success, to:{}, subject:{}", to_addr, subject);
+        Ok(response) => {
+            let smtp_message: Vec<&str> = response.message().collect();
+            info!(
+                "send_email success, to:{}, subject:{}, smtp_code:{}, smtp_response:{:?}",
+                to_addr, subject, response.code(), smtp_message
+            );
             true
         }
         Err(e) => {
             error!(
-                "send_email failed, to:{}, subject:{}, host:{}, port:{}, err:{}",
-                to_addr, subject, host, port, e
+                "send_email failed, to:{}, subject:{}, from:{}, host:{}, port:{}, err:{:?}",
+                to_addr, subject, from_addr, host, port, e
             );
             false
         }

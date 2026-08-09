@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: infra-server-service
-          image: registry.cn-hongkong.aliyuncs.com/reddwarf-pro/infra-server:f676a46be768a69ef3d95b67e3b1656aa5f5e530
+          image: registry.cn-hongkong.aliyuncs.com/reddwarf-pro/infra-server:c9a1bbe3ed095716b913897148111c915e90df03
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
@@ -81,6 +81,41 @@ spec:
                 configMapKeyRef:
                   name: infra-server-service-pro-config
                   key: cf_turnstile_secret_key
+            - name: SMTP_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: infra-server-service-pro-config
+                  key: smtp_host
+            - name: SMTP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: infra-server-service-pro-config
+                  key: smtp_port
+            - name: SMTP_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: infra-server-service-pro-config
+                  key: smtp_username
+            - name: SMTP_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: infra-server-service-pro-config
+                  key: smtp_password
+            - name: SMTP_FROM
+              valueFrom:
+                configMapKeyRef:
+                  name: infra-server-service-pro-config
+                  key: smtp_from
+            - name: SMTP_FROM_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: infra-server-service-pro-config
+                  key: smtp_from_name
+            - name: EMAIL_TEST_ADDR
+              valueFrom:
+                configMapKeyRef:
+                  name: infra-server-service-pro-config
+                  key: email_test_addr
           resources:
             limits:
               cpu: 100m
