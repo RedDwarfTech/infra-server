@@ -1,6 +1,6 @@
 use std::env;
 
-use log::{error, info, warn};
+use log::{error, warn};
 use lettre::message::Mailbox;
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
@@ -107,7 +107,7 @@ pub fn send_email(to_addr: &str, subject: &str, body: &str) -> bool {
     match mailer.send(&email) {
         Ok(response) => {
             let smtp_message: Vec<&str> = response.message().collect();
-            info!(
+            warn!(
                 "send_email success, to:{}, subject:{}, smtp_code:{}, smtp_response:{:?}",
                 to_addr, subject, response.code(), smtp_message
             );
