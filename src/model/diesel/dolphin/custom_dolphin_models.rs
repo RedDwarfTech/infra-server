@@ -226,15 +226,25 @@ pub struct SmsLog {
     pub biz_id: Option<String>,
 }
 
+/// 用户登录凭据实体（对应 user_credential 表）
+///
+/// users 表保留统一的用户身份，各登录方式的独立凭据
+/// （如邮箱+密码）存放在该表中。
 #[derive(Insertable, Queryable, QueryableByName, Debug, Serialize, Deserialize, Default, Clone)]
 #[diesel(table_name = user_credential)]
 pub struct UserCredential {
     pub id: i64,
+    /// 关联的用户 id（对应 users.id）
     pub user_id: i64,
+    /// 凭据类型（如 "email"）
     pub credential_type: String,
+    /// 凭据标识（如邮箱地址）
     pub identifier: String,
+    /// 凭据内容（如加盐后的密码哈希）
     pub credential: String,
+    /// 加盐串，用于密码哈希
     pub salt: String,
+    /// 状态：1 正常，0 失效
     pub status: i32,
     pub app_id: String,
     pub product_id: i32,

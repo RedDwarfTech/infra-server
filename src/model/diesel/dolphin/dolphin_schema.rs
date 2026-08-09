@@ -164,6 +164,8 @@ table! {
     }
 }
 
+// user_credential: 用户登录凭据表，存储各登录方式的独立凭据（如邮箱+密码），
+// users 表保留统一用户身份（手机号）
 table! {
     user_credential (id) {
         id -> Int8,
