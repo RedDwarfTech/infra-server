@@ -2,33 +2,38 @@ use std::collections::HashMap;
 use std::env;
 
 use crate::common::cache::user_cache::store_login_user;
-use crate::composite::user::user_comp::is_valid_password;
 use crate::composite::user::user_comp::{
-    do_user_reg, get_cached_rd_user, get_cached_user, get_cached_user_by_phone, get_jwt_payload,
-    get_rd_inner_user_by_id,
+    do_email_user_reg, do_user_reg, get_cached_rd_user, get_cached_user, get_cached_user_by_phone,
+    get_jwt_payload, get_rd_inner_user_by_id, is_valid_email, is_valid_password,
 };
 use crate::model::diesel::custom::notify::sms_log_add::SmsLogAdd;
 use crate::model::diesel::custom::oauth::oauth_add::OauthAdd;
 use crate::model::diesel::dolphin::custom_dolphin_models::{App, User};
+use crate::model::req::notify::email::email_verify_req::EmailVerifyReq;
 use crate::model::req::notify::sms::login_sms_verify_req::LoginSmsVerifyReq;
 use crate::model::req::notify::sms::sms_req::SmsReq;
 use crate::model::req::notify::sms::sms_verify_req::SmsVerifyReq;
 use crate::model::req::user::edit::change_pwd_req::ChangePwdReq;
 use crate::model::req::user::edit::edit_user_params::EditUserParams;
+use crate::model::req::user::login::email_login_req::EmailLoginReq;
 use crate::model::req::user::login::login_req::LoginReq;
 use crate::model::req::user::pwd::reset_pwd_req::ResetPwdReq;
 use crate::model::req::user::query::user_query_params::UserQueryParams;
+use crate::model::req::user::reg::email_reg_req::EmailRegReq;
 use crate::model::req::user::reg::reg_req::RegReq;
 use crate::service::app::app_service::{query_app_by_app_id, query_cached_app};
 use crate::service::captcha::turnstile_service::verify_turnstile_token;
+use crate::service::notify::email_service::send_email;
 use crate::service::notify::sms_log_service::{
     count_today_sms_log, count_today_sms_log_by_phone, save_sms_log,
 };
 use crate::service::notify::sms_service::send_sms;
 use crate::service::notify::sms_template_service::get_app_sms_tempate;
 use crate::service::oauth::oauth_service::insert_refresh_token;
+use crate::service::user::user_credential_service::query_user_credential_by_identifier;
 use crate::service::user::user_service::{
-    change_user_pwd, handle_update_nickname, query_user_by_product_id, reset_user_pwd,
+    change_user_pwd, handle_update_nickname, query_user_by_id, query_user_by_product_id,
+    reset_user_pwd,
 };
 use actix_web::{get, patch, post, put, web, HttpRequest, Responder};
 use chrono::Local;
@@ -40,7 +45,7 @@ use rust_wheel::common::wrapper::actix_http_resp::{
 };
 use rust_wheel::config::app::app_conf_reader::get_app_config;
 use rust_wheel::config::cache::redis_util::{
-    get_str_default, incre_redis_key, set_str, sync_get_str,
+    del_redis_key, get_str_default, incre_redis_key, set_str, sync_get_str,
 };
 use rust_wheel::model::error::infra_error::InfraError;
 use rust_wheel::model::response::user::login_response::LoginResponse;
@@ -121,6 +126,114 @@ pub async fn login(req: HttpRequest, form: actix_web_validator::Json<LoginReq>) 
         //}
         return box_err_actix_rest_response(InfraError::LoginInfoNotMatch);
     }
+}
+
+/// Email login
+///
+/// login with email + password or email + verify code
+#[utoipa::path(
+    context_path = "/infra/user/login/email",
+    path = "/",
+    responses(
+        (status = 200, description = "email login")
+    )
+)]
+#[post("/login/email")]
+pub async fn email_login(
+    req: HttpRequest,
+    form: actix_web_validator::Json<EmailLoginReq>,
+) -> impl Responder {
+    let client_ip = extract_client_ip(&req);
+    if !verify_turnstile_token(&form.0.cf_token, client_ip.as_deref()).await {
+        return box_error_actix_rest_response(
+            "",
+            "0030010016".to_string(),
+            "人机验证失败，请重试".to_string(),
+        );
+    }
+    let email = form.0.email.trim().to_lowercase();
+    if !is_valid_email(&email) {
+        return box_err_actix_rest_response(InfraError::LoginInfoNotMatch);
+    }
+    let app_info = query_app_by_app_id(&form.0.app_id);
+    let email_type = "email".to_string();
+    let credential_opt =
+        query_user_credential_by_identifier(&email, &email_type, &app_info.product_id);
+    if credential_opt.is_none() {
+        return box_err_actix_rest_response(InfraError::LoginInfoNotMatch);
+    }
+    let credential = credential_opt.unwrap();
+    let password_login = form
+        .0
+        .password
+        .as_ref()
+        .map(|p| !p.is_empty())
+        .unwrap_or(false);
+    let code_login = form
+        .0
+        .verify_code
+        .as_ref()
+        .map(|c| !c.is_empty())
+        .unwrap_or(false);
+    if password_login {
+        let sha_password = get_sha(form.0.password.unwrap(), &credential.salt);
+        if sha_password != credential.credential {
+            return box_err_actix_rest_response(InfraError::LoginInfoNotMatch);
+        }
+    } else if code_login {
+        let cached_key = format!("infra:user:email:{}", &email);
+        let redis_resp = get_str_default(&cached_key);
+        match redis_resp {
+            Ok(data) => {
+                if data.is_none() {
+                    return box_err_actix_rest_response(InfraError::VerifyCodeExpired);
+                }
+                if data.unwrap() != form.0.verify_code.unwrap() {
+                    return box_err_actix_rest_response(InfraError::SmsVerifyCodeNotMatch);
+                }
+            }
+            Err(e) => {
+                error!(
+                    "get redis email login verify failed,{},params:{:?}",
+                    e, form.0
+                );
+                return box_err_actix_rest_response(InfraError::SmsVerifyCodeNotMatch);
+            }
+        }
+        if let Err(e) = del_redis_key(&cached_key) {
+            error!("delete email login verify code failed, {}, key: {}", e, cached_key);
+        }
+    } else {
+        return box_err_actix_rest_response(InfraError::LoginInfoNotMatch);
+    }
+    let single_user = query_user_by_id(&credential.user_id);
+    let payload = get_jwt_payload(
+        &single_user.id,
+        &form.0.device_id,
+        &form.0.app_id,
+        &single_user.product_id,
+    );
+    let uuid = Uuid::new_v4();
+    let access_token = create_access_token(&payload);
+    let login_resp: LoginResponse = LoginResponse {
+        registerTime: single_user.register_time.clone(),
+        refreshToken: uuid.to_string(),
+        accessToken: access_token,
+        nickname: single_user.nickname.to_string(),
+    };
+    let now = Local::now();
+    let future_time = now + chrono::Duration::days(7);
+    let future_timestamp = future_time.timestamp();
+    let oauth = OauthAdd {
+        refresh_token: digest(uuid.to_string()),
+        user_id: single_user.id.clone(),
+        expire_date: future_timestamp,
+        device_id: form.0.device_id.clone(),
+        app_id: form.0.app_id,
+    };
+    store_login_user(&payload, &single_user, &app_info);
+    insert_refresh_token(&oauth);
+    return box_actix_rest_response(login_resp);
 }
 
 fn extract_client_ip(req: &HttpRequest) -> Option<String> {
@@ -241,6 +354,184 @@ pub async fn reg_user(req: HttpRequest, form: actix_web_validator::Json<RegReq>)
     let client_ip = req.headers().get("x-texhub-real-ip");
     let app = query_cached_app(&form.0.app_id);
     return do_user_reg(&form.0, &app, client_ip.unwrap().to_str().unwrap());
+}
+
+/// Register user with email
+///
+/// Register user with email + verify code, phone is optional
+#[utoipa::path(
+    context_path = "/infra/user/reg/email",
+    path = "/",
+    responses(
+        (status = 200, description = "Register user with email")
+    )
+)]
+#[post("/reg/email")]
+pub async fn email_reg_user(
+    req: HttpRequest,
+    form: actix_web_validator::Json<EmailRegReq>,
+) -> impl Responder {
+    let app = query_cached_app(&form.0.app_id);
+    let client_ip = req.headers().get("x-texhub-real-ip");
+    let ip = client_ip
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("0.0.0.0")
+        .to_string();
+    return do_email_user_reg(&form.0, &app, &ip);
+}
+
+/// Send email register verify code
+///
+/// Send email register verify code
+#[utoipa::path(
+    context_path = "/infra/user/reg/send-email-verify-code",
+    path = "/",
+    responses(
+        (status = 200, description = "send email register verify code")
+    )
+)]
+#[put("/reg/send-email-verify-code")]
+pub async fn send_reg_email_verify_code(
+    params: actix_web_validator::Json<EmailVerifyReq>,
+) -> impl Responder {
+    info!(
+        "send_reg_email_verify_code start, email:{}, app_id:{}",
+        params.0.email, params.0.app_id
+    );
+    let email = params.0.email.trim().to_lowercase();
+    if !is_valid_email(&email) {
+        return box_error_actix_rest_response(
+            "",
+            "0030010021".to_string(),
+            "邮箱格式不正确".to_string(),
+        );
+    }
+    let caced_key = format!("infra:user:email:reg:{}", &email);
+    let redis_resp = get_str_default(&caced_key);
+    match redis_resp {
+        Ok(data) => {
+            if data.is_some() {
+                warn!(
+                    "send_reg_email_verify_code blocked by frequency limit, email:{}, cache_key:{}",
+                    email, caced_key
+                );
+                return box_error_actix_rest_response(
+                    "",
+                    "0030010017".to_string(),
+                    "发送过于频繁，请稍后再试".to_string(),
+                );
+            }
+        }
+        Err(e) => {
+            error!(
+                "send_reg_email_verify_code redis read failed, email:{}, cache_key:{}, err:{}",
+                email, caced_key, e
+            );
+            return box_error_actix_rest_response(
+                "",
+                "0030010018".to_string(),
+                "服务暂不可用，请稍后再试".to_string(),
+            );
+        }
+    }
+    let cached_app = query_cached_app(&params.0.app_id);
+    let email_type = "email".to_string();
+    let existing = query_user_credential_by_identifier(&email, &email_type, &cached_app.product_id);
+    if existing.is_some() {
+        warn!(
+            "send_reg_email_verify_code email already registered, email:{}, app_id:{}",
+            email, params.0.app_id
+        );
+        return box_error_actix_rest_response(
+            "",
+            "0030010005".to_string(),
+            "邮箱已被注册".to_string(),
+        );
+    }
+    let mut rng = rand::rng();
+    let distribution = Uniform::new_inclusive(100000, 999999).unwrap();
+    let random_number: u32 = distribution.sample(&mut rng);
+    let subject = "TexHub 注册验证码";
+    let body = format!(
+        "您的注册验证码是：{}，请在 60 秒内完成注册。如果这不是您本人的操作，请忽略本邮件。",
+        random_number
+    );
+    if send_email(&email, subject, &body) {
+        set_str(&caced_key, &random_number.to_string(), 60);
+        info!(
+            "send_reg_email_verify_code email sent, email:{}, app_id:{}",
+            email, params.0.app_id
+        );
+        return box_actix_rest_response("ok");
+    }
+    error!(
+        "send_reg_email_verify_code send_email failed, email:{}, app_id:{}",
+        email, params.0.app_id
+    );
+    return box_error_actix_rest_response(
+        "",
+        "0030010020".to_string(),
+        "邮件发送失败，请稍后再试".to_string(),
+    );
+}
+
+/// Send email login verify code
+///
+/// Send email login verify code
+#[utoipa::path(
+    context_path = "/infra/user/email/send-verify-code",
+    path = "/",
+    responses(
+        (status = 200, description = "send email login verify code")
+    )
+)]
+#[put("/email/send-verify-code")]
+pub async fn send_email_login_verify_code(
+    params: actix_web_validator::Json<EmailVerifyReq>,
+) -> impl Responder {
+    let email = params.0.email.trim().to_lowercase();
+    if !is_valid_email(&email) {
+        return box_error_actix_rest_response(
+            "",
+            "0030010021".to_string(),
+            "邮箱格式不正确".to_string(),
+        );
+    }
+    let caced_key = format!("infra:user:email:{}", &email);
+    let redis_resp = get_str_default(&caced_key);
+    match redis_resp {
+        Ok(data) => {
+            if data.is_some() {
+                return box_actix_rest_response("too freqency,please try again later");
+            }
+        }
+        Err(e) => {
+            error!(
+                "get redis email login info failed,{},params:{:?}",
+                e, params.0
+            );
+            return box_actix_rest_response("ok");
+        }
+    }
+    let cached_app = query_cached_app(&params.0.app_id);
+    let email_type = "email".to_string();
+    let existing = query_user_credential_by_identifier(&email, &email_type, &cached_app.product_id);
+    if existing.is_none() {
+        return box_actix_rest_response("ok");
+    }
+    let mut rng = rand::rng();
+    let distribution = Uniform::new_inclusive(100000, 999999).unwrap();
+    let random_number: u32 = distribution.sample(&mut rng);
+    let subject = "TexHub 登录验证码";
+    let body = format!(
+        "您的登录验证码是：{}，请在 60 秒内完成登录。如果这不是您本人的操作，请忽略本邮件。",
+        random_number
+    );
+    if send_email(&email, subject, &body) {
+        set_str(&caced_key, &random_number.to_string(), 60);
+        return box_actix_rest_response("ok");
+    }
+    return box_actix_rest_response("ok");
 }
 
 /// Get user
@@ -550,11 +841,15 @@ pub async fn reset_pwd(params: actix_web_validator::Json<ResetPwdReq>) -> impl R
 pub fn config(conf: &mut web::ServiceConfig) {
     let scope = web::scope("/infra/user")
         .service(login)
+        .service(email_login)
         .service(change_passowrd)
         .service(reg_user)
+        .service(email_reg_user)
         .service(change_nickname)
         .service(send_reset_pwd_verify_code)
         .service(send_reg_verify_code)
+        .service(send_reg_email_verify_code)
+        .service(send_email_login_verify_code)
         .service(send_login_verify_code)
         .service(reset_pwd)
         .service(current_user);

@@ -7,16 +7,25 @@ use crate::{
     },
     model::{
         diesel::{
-            custom::user::user_add::UserAdd,
+            custom::{
+                user::user_add::UserAdd,
+                user::user_credential_add::UserCredentialAdd,
+            },
             dolphin::custom_dolphin_models::{App, User},
         },
-        req::user::reg::reg_req::RegReq,
+        req::user::reg::{
+            email_reg_req::EmailRegReq,
+            reg_req::RegReq,
+        },
     },
     service::{
         app::app_service::query_cached_app,
         user::{
             user_service::{
                 add_user, query_user_by_id, query_user_by_phone, query_user_by_product_id,
+            },
+            user_credential_service::{
+                add_user_credential, query_user_credential_by_identifier,
             },
             user_sub_service::get_user_sub_expire_time,
         },
@@ -33,7 +42,7 @@ use rust_wheel::{
             time_util::get_current_millisecond,
         },
         wrapper::actix_http_resp::{
-            box_actix_rest_response, box_err_actix_rest_response,
+            box_actix_rest_response, box_err_actix_rest_response, box_error_actix_rest_response,
         },
     },
     config::cache::redis_util::{del_redis_key, get_str_default, set_str, sync_get_str},
@@ -193,6 +202,100 @@ pub fn do_user_reg(req: &RegReq, app: &App, ip: &str) -> HttpResponse {
     add_user(&reg_u);
     if let Err(e) = del_redis_key(&cached_key) {
         error!("delete reg sms code failed, {}, key: {}", e, cached_key);
+    }
+    return box_actix_rest_response("ok");
+}
+
+pub fn is_valid_email(email: &str) -> bool {
+    let re = Regex::new(r"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$").unwrap();
+    re.is_match(email).unwrap_or(false)
+}
+
+pub fn do_email_user_reg(req: &EmailRegReq, app: &App, ip: &str) -> HttpResponse {
+    if !is_valid_password(&req.password) {
+        return box_err_actix_rest_response(InfraError::PwdNitMatchComplexGuide);
+    }
+    let email = req.email.trim().to_lowercase();
+    if !is_valid_email(&email) {
+        return box_error_actix_rest_response(
+            "",
+            "0030010021".to_string(),
+            "邮箱格式不正确".to_string(),
+        );
+    }
+    if let Some(phone) = &req.phone {
+        let trimmed_phone = phone.trim();
+        if !trimmed_phone.is_empty() {
+            let exists_user =
+                query_user_by_product_id(&trimmed_phone.to_string(), &app.product_id);
+            if exists_user.is_some() {
+                return box_error_actix_rest_response(
+                    "",
+                    "0030010005".to_string(),
+                    "手机号已被注册".to_string(),
+                );
+            }
+        }
+    }
+    let email_type = "email".to_string();
+    let existing_credential =
+        query_user_credential_by_identifier(&email, &email_type, &app.product_id);
+    if existing_credential.is_some() {
+        return box_error_actix_rest_response(
+            "",
+            "0030010005".to_string(),
+            "邮箱已被注册".to_string(),
+        );
+    }
+    let cached_key = format!("infra:user:email:reg:{}", &email);
+    let redis_resp = get_str_default(&cached_key);
+    match redis_resp {
+        Ok(data) => {
+            if data.is_none() {
+                return box_err_actix_rest_response(InfraError::VerifyCodeExpired);
+            }
+            if data.unwrap() != req.verify_code {
+                return box_err_actix_rest_response(InfraError::SmsVerifyCodeNotMatch);
+            }
+        }
+        Err(_) => {
+            return box_err_actix_rest_response(InfraError::VerifyCodeExpired);
+        }
+    }
+    let mut reg_u = UserAdd::default();
+    reg_u.phone = req.phone.clone().unwrap_or_default().trim().to_string();
+    reg_u.salt = "".to_string();
+    reg_u.pwd = "".to_string();
+    reg_u.nickname = format!("u_{}", generate_random_string(6));
+    reg_u.register_time = get_current_millisecond();
+    reg_u.first_login_time = Some(get_current_millisecond());
+    reg_u.app_id = app.app_id.clone();
+    reg_u.product_id = app.product_id;
+    reg_u.register_ip = ip.to_string();
+    let ip_network = IpNetwork::from_str(&ip).unwrap();
+    reg_u.reg_ip = Some(ip_network);
+    reg_u.created_time = get_current_millisecond();
+    reg_u.updated_time = get_current_millisecond();
+    let new_user = add_user(&reg_u);
+
+    let pwd_salt = generate_random_string(16);
+    let salted_pwd = get_sha(req.password.clone(), &pwd_salt);
+    let now = get_current_millisecond();
+    let credential = UserCredentialAdd {
+        user_id: new_user.id,
+        credential_type: email_type,
+        identifier: email.clone(),
+        credential: salted_pwd,
+        salt: pwd_salt,
+        status: 1,
+        app_id: app.app_id.clone(),
+        product_id: app.product_id,
+        created_time: now,
+        updated_time: now,
+    };
+    add_user_credential(&credential);
+    if let Err(e) = del_redis_key(&cached_key) {
+        error!("delete email reg verify code failed, {}, key: {}", e, cached_key);
     }
     return box_actix_rest_response("ok");
 }

@@ -75,12 +75,12 @@ pub fn query_user_by_phone(phone_number: &String, filter_product_id: &i32) -> Op
     }
 }
 
-pub fn add_user(add_u: &UserAdd) {
+pub fn add_user(add_u: &UserAdd) -> User {
     use crate::model::diesel::dolphin::dolphin_schema::users as users_table;
     diesel::insert_into(users_table::dsl::users)
         .values(add_u)
         .get_result::<User>(&mut get_conn())
-        .expect("failed to add user");
+        .expect("failed to add user")
 }
 
 pub async fn handle_update_nickname(edit_req: &EditUserParams, login_user_info: &LoginUserInfo) {

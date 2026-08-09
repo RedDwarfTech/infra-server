@@ -165,6 +165,22 @@ table! {
 }
 
 table! {
+    user_credential (id) {
+        id -> Int8,
+        user_id -> Int8,
+        credential_type -> Varchar,
+        identifier -> Varchar,
+        credential -> Varchar,
+        salt -> Varchar,
+        status -> Int4,
+        app_id -> Varchar,
+        product_id -> Int4,
+        created_time -> Int8,
+        updated_time -> Int8,
+    }
+}
+
+table! {
     user_sub (id) {
         id -> Int8,
         app_id -> Varchar,
@@ -221,6 +237,7 @@ allow_tables_to_appear_in_same_query!(
     sms_config,
     sms_log,
     sms_template,
+    user_credential,
     user_sub,
     users,
 );
