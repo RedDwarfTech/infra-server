@@ -18,6 +18,16 @@ pub fn query_app_map_by_app_id(filter_app_id: &String, pay_type: i32) -> AppMap 
     return app_map_result;
 }
 
+pub fn query_app_maps_by_pay_type(pay_type: i32) -> Vec<AppMap> {
+    use crate::model::diesel::dolphin::dolphin_schema::app_map as app_map_table;
+    let err_msg = format!("query app maps by pay type failed, pay type:{}", pay_type);
+    let app_map_result = app_map_table::table
+        .filter(app_map_table::third_channel.eq(pay_type))
+        .load::<AppMap>(&mut get_conn())
+        .expect(&err_msg);
+    return app_map_result;
+}
+
 pub fn query_app_map_by_third_app_id(t_app_id: &String, pay_type: i32) -> AppMap {
     use crate::model::diesel::dolphin::dolphin_schema::app_map as app_map_table;
     let predicate = app_map_table::third_app_id
