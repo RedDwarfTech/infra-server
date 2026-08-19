@@ -19,6 +19,7 @@ use actix_web::App;
 use actix_web::HttpServer;
 use controller::goods::goods_controller;
 use controller::monitor::health_controller;
+use controller::monitor::log_controller;
 use controller::order::order_controller;
 use controller::order::auto_expire;
 use controller::pay::alipay::alipay_controller;
@@ -63,6 +64,7 @@ async fn main() -> std::io::Result<()> {
             .configure(alipay_notify_controller::config)
             .configure(order_controller::config)
             .configure(id_controller::config)
+            .configure(log_controller::config)
             .service(
                 SwaggerUi::new("/docs-v1/{_:.*}").url("/api-docs/openapi.json", ApiDoc::openapi()),
             )

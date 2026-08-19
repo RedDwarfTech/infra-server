@@ -182,6 +182,20 @@ table! {
     }
 }
 
+// system_log: 系统运行日志表，记录系统运行日志（时间、内容、来源、级别）
+table! {
+    system_log (id) {
+        id -> Int8,
+        log_time -> Int8,
+        content -> Varchar,
+        source -> Varchar,
+        level -> Varchar,
+        app_id -> Varchar,
+        created_time -> Int8,
+        updated_time -> Int8,
+    }
+}
+
 table! {
     user_sub (id) {
         id -> Int8,
@@ -239,6 +253,7 @@ allow_tables_to_appear_in_same_query!(
     sms_config,
     sms_log,
     sms_template,
+    system_log,
     user_credential,
     user_sub,
     users,

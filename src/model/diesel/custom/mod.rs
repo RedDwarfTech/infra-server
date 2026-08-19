@@ -3,3 +3,4 @@ pub mod oauth;
 pub mod pay;
 pub mod user;
 pub mod notify;
+pub mod system_log;

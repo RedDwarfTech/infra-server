@@ -251,3 +251,23 @@ pub struct UserCredential {
     pub created_time: i64,
     pub updated_time: i64,
 }
+
+/// 系统运行日志实体（对应 system_log 表）
+///
+/// 记录系统运行日志，包括日志时间、日志内容、日志来源、日志级别等信息。
+#[derive(Insertable, Queryable, QueryableByName, Debug, Serialize, Deserialize, Default, Clone)]
+#[diesel(table_name = system_log)]
+pub struct SystemLog {
+    pub id: i64,
+    /// 日志时间（毫秒时间戳）
+    pub log_time: i64,
+    /// 日志内容
+    pub content: String,
+    /// 日志来源（模块/服务名称）
+    pub source: String,
+    /// 日志级别（DEBUG/INFO/WARN/ERROR/FATAL）
+    pub level: String,
+    pub app_id: String,
+    pub created_time: i64,
+    pub updated_time: i64,
+}
