@@ -4,3 +4,5 @@ app_cached_key="global:app:"
 login_failed_key="user:login:failed:"
 infra_service_name="infra-server-service"
 server_chan_api="https://sctapi.ftqq.com/"
+# 关联服务探测地址（内网可达，不对外暴露）
+broadcast_health_url="http://texhub-broadcast-service:1234"
