@@ -6,3 +6,5 @@ infra_service_name="infra-server-service"
 server_chan_api="https://sctapi.ftqq.com/"
 # 关联服务探测地址（内网可达，不对外暴露）
 broadcast_health_url="http://texhub-broadcast-service:1234"
+# Turnstile 人机验证开关（国内阿里云无法访问 turnstile 域名，设为 false 跳过验证）
+captcha_enabled=false

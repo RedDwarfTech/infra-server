@@ -4,6 +4,7 @@ use reqwest::Client;
 use serde::Deserialize;
 use std::env;
 use std::time::Duration;
+use rust_wheel::config::app::app_conf_reader::get_app_config;
 
 const TURNSTILE_VERIFY_URL: &str = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
@@ -118,6 +119,11 @@ fn log_turnstile_failure(
 
 /// Verify a Cloudflare Turnstile token via Siteverify API.
 pub async fn verify_turnstile_token(token: &str, remote_ip: Option<&str>) -> bool {
+    let captcha_enabled = get_app_config("infra.captcha_enabled");
+    if captcha_enabled != "true" {
+        return true;
+    }
+
     let secret = match env::var("CF_TURNSTILE_SECRET_KEY") {
         Ok(value) if !value.is_empty() => normalize_turnstile_secret(&value),
         _ => {
