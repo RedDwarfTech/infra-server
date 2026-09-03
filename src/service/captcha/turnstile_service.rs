@@ -3,6 +3,7 @@ use log::{error, warn};
 use reqwest::Client;
 use serde::Deserialize;
 use std::env;
+use std::time::Duration;
 
 const TURNSTILE_VERIFY_URL: &str = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
@@ -137,7 +138,10 @@ pub async fn verify_turnstile_token(token: &str, remote_ip: Option<&str>) -> boo
         }
     }
 
-    let client = Client::new();
+    let client = Client::builder()
+        .timeout(Duration::from_secs(10))
+        .build()
+        .unwrap_or_default();
     match client
         .post(TURNSTILE_VERIFY_URL)
         .form(&params)
@@ -146,7 +150,17 @@ pub async fn verify_turnstile_token(token: &str, remote_ip: Option<&str>) -> boo
     {
         Ok(response) => {
             let http_status = response.status().as_u16();
-            match response.json::<TurnstileVerifyResponse>().await {
+            let raw_body = match response.text().await {
+                Ok(text) => text,
+                Err(err) => {
+                    error!(
+                        "Turnstile siteverify failed: could not read response body, \
+                         http_status={http_status}, err={err}"
+                    );
+                    return false;
+                }
+            };
+            match serde_json::from_str::<TurnstileVerifyResponse>(&raw_body) {
                 Ok(body) => {
                     if !body.success {
                         log_turnstile_failure(&body, &secret, token, remote_ip, http_status);
@@ -155,14 +169,19 @@ pub async fn verify_turnstile_token(token: &str, remote_ip: Option<&str>) -> boo
                 }
                 Err(err) => {
                     error!(
-                        "Turnstile response parse failed: http_status={http_status}, err={err}"
+                        "Turnstile siteverify response was not valid JSON: http_status={http_status}, err={err}, \
+                         raw_response=[{}]",
+                        raw_body
                     );
                     false
                 }
             }
         }
         Err(err) => {
-            error!("Turnstile siteverify request failed: {}", err);
+            error!(
+                "Turnstile siteverify request failed: url={}, remote_ip={:?}, err={err}",
+                TURNSTILE_VERIFY_URL, remote_ip
+            );
             false
         }
     }
