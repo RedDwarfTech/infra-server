@@ -7,7 +7,7 @@ edition = "2021"
 serde = { version = "1.0.64", features = ["derive"] }
 serde_json = "1.0.151"
 futures = "0.3"
-actix-web = "4.14.1"
+actix-web = "4.15.0"
 actix-web-validator = "7.0.0"
 rust_wheel = { git = "https://github.com/RedDwarfTech/rust_wheel.git", features = [
     "model",
@@ -17,7 +17,7 @@ rust_wheel = { git = "https://github.com/RedDwarfTech/rust_wheel.git", features 
     "alipay",
 ] }
 validator = { version = "0.20.0", features = ["derive"] }
-diesel = { version = "2.3.12", features = [
+diesel = { version = "2.3.13", features = [
     "postgres",
     "64-column-tables",
     "chrono",
@@ -27,7 +27,7 @@ diesel = { version = "2.3.12", features = [
 ] }
 pq-sys = { version = "0.7.5", features = ["bundled"] }
 openssl-sys = { version = "0.9.109", features = ["vendored"] }
-uuid = { version = "1.4.1", features = [
+uuid = { version = "1.26.0", features = [
     "v4",                # Lets you generate random UUIDs
     "fast-rng",          # Use a faster (but still sufficiently random) RNG
     "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
@@ -72,7 +72,7 @@ lettre = { version = "0.11.14", default-features = false, features = [
 anyhow = "1.0.86"
 ipnetwork = { version = "0.21.1", features = ["serde"] }
 reqwest = { version = "0.13.3", features = ["json", "form"] }
-redis = { version = "1.5.0", features = ["tokio-comp"] }
+redis = { version = "1.7.0", features = ["tokio-comp"] }
 tokio = { version = "1.53.1", features = ["full"] }
 
 [profile.release]
