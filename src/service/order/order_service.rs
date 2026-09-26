@@ -41,6 +41,24 @@ pub fn query_order_by_order_id(o_id: &String, uid: &i64) -> Order {
     return db_order;
 }
 
+/// Look up one of the current user's orders without panicking when the order
+/// id is unknown or belongs to somebody else, so the caller can answer with a
+/// not-found response instead of a 500.
+pub fn find_order_by_order_id(o_id: &String, uid: &i64) -> Option<Order> {
+    use crate::model::diesel::dolphin::dolphin_schema::orders as order_table;
+    let predicate = order_table::order_id
+        .eq(o_id)
+        .and(order_table::user_id.eq(uid));
+    let db_order = order_table::table
+        .filter(&predicate)
+        .limit(1)
+        .first::<Order>(&mut get_conn());
+    return match db_order {
+        Ok(order) => Some(order),
+        Err(_) => None,
+    };
+}
+
 pub fn query_order_by_out_trans_no(out_trans_no: &String) -> Order {
     use crate::model::diesel::dolphin::dolphin_schema::orders as order_table;
     let predicate = order_table::order_id.eq(out_trans_no);
