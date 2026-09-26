@@ -49,9 +49,23 @@ pub fn handle_sub_by_type(
     out_trans_no: &String,
     connection: &mut PgConnection,
 ) {
-    if iap.product_type == ApplePayProductType::NonSubscription as i32 {
+    // Auto-renewing (3) and non-renewing (4) products are both time limited, so
+    // a paid one entitles the user to a period straight away. The two only
+    // differ once the platform starts sending renewal notifications, which is
+    // not implemented yet. Restricting this to (4) meant a paid (3) product
+    // flipped the order to PAID while granting no subscription at all.
+    // Consumable (1) and non-consumable (2) products are one-off purchases with
+    // no period, so they do not belong in `user_sub`.
+    if iap.product_type == ApplePayProductType::SUBSCRIPTION as i32
+        || iap.product_type == ApplePayProductType::NonSubscription as i32
+    {
         handle_non_subscribe(iap, uid, out_trans_no, connection);
+        return;
     }
+    warn!(
+        "no subscription granted, unsupported product_type:{}, iap_product_id:{}, out_trans_no:{}",
+        iap.product_type, iap.id, out_trans_no
+    );
 }
 
 pub fn handle_non_subscribe(
@@ -79,7 +93,10 @@ pub fn handle_non_subscribe(
         u_sub.sub_start_time = max_sub_end_time;
         u_sub.sub_start = Utc.timestamp_opt(max_sub_end_time / 1000, 0).unwrap()
     }
-    let sub_end_time = get_sub_time(iap, &u_sub.sub_start_time);
+    let sub_end_time = match get_sub_time(iap, &u_sub.sub_start_time) {
+        Some(sub_end_time) => sub_end_time,
+        None => return,
+    };
     u_sub.sub_end = Utc.timestamp_opt(sub_end_time / 1000, 0).unwrap();
     u_sub.sub_end_time = sub_end_time;
     let u_subs = query_user_sub_by_order_id(&out_trans_no);
@@ -97,13 +114,25 @@ pub fn handle_non_subscribe(
     }
 }
 
-fn get_sub_time(iap_product: &IapProduct, bas_time: &i64) -> i64 {
-    match PayPeroidType::from(iap_product.period) {
-        PayPeroidType::DAY => bas_time + 86400000,
-        PayPeroidType::OneMonth => bas_time + 2592000000,
-        PayPeroidType::ThreeMonth => bas_time + 7776000000,
-        PayPeroidType::SixMonth => bas_time + 15552000000,
-        PayPeroidType::OneYear => bas_time + 31536000000,
-        PayPeroidType::Unknow => -1,
-    }
+/// Length of the period a paid product grants, starting at `bas_time`.
+///
+/// Returns `None` for an unknown period, which the caller treats as "grant
+/// nothing". This used to answer `-1` instead, writing a subscription that had
+/// already expired and so silently denying a purchase the user had paid for.
+fn get_sub_time(iap_product: &IapProduct, bas_time: &i64) -> Option<i64> {
+    let duration = match PayPeroidType::from(iap_product.period) {
+        PayPeroidType::DAY => 86400000,
+        PayPeroidType::OneMonth => 2592000000,
+        PayPeroidType::ThreeMonth => 7776000000,
+        PayPeroidType::SixMonth => 15552000000,
+        PayPeroidType::OneYear => 31536000000,
+        PayPeroidType::Unknow => {
+            error!(
+                "unknown pay period:{}, iap_product_id:{}",
+                iap_product.period, iap_product.id
+            );
+            return None;
+        }
+    };
+    return Some(bas_time + duration);
 }
